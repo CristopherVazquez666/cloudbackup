@@ -3,7 +3,7 @@ const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { execSync, exec } = require('child_process');
 const { getDb } = require('../../db');
-const { adminMiddleware, authMiddleware } = require('../../middleware/auth');
+const { adminMiddleware, authMiddleware } = require('../../../middleware/auth');
 
 // POST /api/backups/:cpanel_user — trigger backup
 router.post('/:cpanel_user', adminMiddleware, (req, res) => {

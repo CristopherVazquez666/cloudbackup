@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { generateToken } = require('../middleware/auth');
+const { generateToken } = require('../../middleware/auth');
 
 // Admin login
 router.post('/login', (req, res) => {
