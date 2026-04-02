@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const { getDb } = require('../../db');
-const { adminMiddleware, authMiddleware } = require('../../../middleware/auth');
+const { adminMiddleware, authMiddleware } = require('../../middleware/auth');
 
 // GET /api/jobs — admin
 router.get('/', adminMiddleware, (req, res) => {
