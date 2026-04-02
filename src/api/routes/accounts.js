@@ -2,7 +2,7 @@ const express = require('express');
 const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../../db');
-const { adminMiddleware, authMiddleware } = require('../../../middleware/auth');
+const { adminMiddleware, authMiddleware } = require('../../middleware/auth');
 
 // POST /api/accounts/activate
 router.post('/activate', adminMiddleware, (req, res) => {
