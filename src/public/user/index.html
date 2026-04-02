@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bovedix — My Backups</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #0A0A0F; --bg2: #111118; --bg3: #1A1A26;
+  --border: rgba(124,58,237,0.15); --border2: rgba(124,58,237,0.3);
+  --primary: #7C3AED; --primary2: #4F46E5; --accent: #A78BFA;
+  --text: #F1F0FF; --text2: #9B98C0; --text3: #5C5A7A;
+  --success: #10B981; --danger: #EF4444; --warning: #F59E0B; --info: #3B82F6;
+  --grad: linear-gradient(135deg, #7C3AED, #4F46E5);
+}
+[data-theme="light"] {
+  --bg: #F5F4FF; --bg2: #FFFFFF; --bg3: #EDE9FF;
+  --text: #1A1730; --text2: #5C5A7A; --text3: #9B98C0;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; }
+
+.sidebar { width:200px; min-width:200px; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.logo { padding:22px 18px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+.logo-icon { width:32px; height:32px; background:var(--grad); border-radius:8px; display:flex; align-items:center; justify-content:center; font-size:16px; }
+.logo-text { font-family:'Syne',sans-serif; font-weight:800; font-size:16px; background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+nav { flex:1; padding:14px 10px; }
+.nav-item { display:flex; align-items:center; gap:10px; padding:9px 12px; border-radius:10px; cursor:pointer; color:var(--text2); font-size:13px; margin-bottom:2px; transition:all 0.2s; border:1px solid transparent; }
+.nav-item:hover { background:var(--bg3); color:var(--text); }
+.nav-item.active { background:rgba(124,58,237,0.15); color:var(--accent); border-color:var(--border2); }
+.nav-item svg { width:15px; height:15px; flex-shrink:0; }
+.sidebar-footer { padding:14px 10px; border-top:1px solid var(--border); }
+.lang-selector { display:flex; gap:4px; background:var(--bg3); padding:3px; border-radius:8px; border:1px solid var(--border); margin-bottom:8px; }
+.lang-btn { flex:1; padding:4px; border-radius:6px; font-size:12px; cursor:pointer; color:var(--text2); border:none; background:transparent; font-family:'DM Sans',sans-serif; }
+.lang-btn.active { background:var(--grad); color:#fff; }
+.theme-toggle { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--bg3); border-radius:10px; cursor:pointer; font-size:12px; color:var(--text2); border:1px solid var(--border); }
+.toggle-switch { margin-left:auto; width:32px; height:18px; background:var(--bg); border-radius:9px; position:relative; border:1px solid var(--border2); }
+.toggle-switch::after { content:''; position:absolute; width:12px; height:12px; background:var(--accent); border-radius:50%; top:2px; left:2px; transition:transform 0.2s; }
+[data-theme="light"] .toggle-switch::after { transform:translateX(14px); }
+
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar { padding:14px 24px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; }
+.topbar-left { display:flex; align-items:center; gap:12px; }
+.user-pill { display:flex; align-items:center; gap:8px; background:var(--bg3); padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:13px; }
+.user-dot { width:8px; height:8px; background:var(--success); border-radius:50%; }
+.topbar-right { display:flex; align-items:center; gap:8px; }
+.topbar-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
+.content { flex:1; overflow-y:auto; padding:24px; }
+
+/* Stats */
+.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
+.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; }
+.stat-value { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
+.stat-label { font-size:12px; color:var(--text2); margin-top:2px; }
+.stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(124,58,237,0.1); color:var(--accent); }
+.stat-icon svg { width:18px; height:18px; }
+.stat-icon.green { background:rgba(16,185,129,0.1); color:var(--success); }
+.stat-icon.red { background:rgba(239,68,68,0.1); color:var(--danger); }
+
+/* Restore grid */
+.restore-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
+.restore-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:20px 16px; text-align:center; cursor:pointer; transition:all 0.2s; }
+.restore-card:hover { border-color:var(--border2); background:var(--bg3); transform:translateY(-2px); }
+.restore-card.active-tab { border-color:var(--primary); background:rgba(124,58,237,0.1); }
+.restore-icon { font-size:24px; margin-bottom:8px; }
+.restore-label { font-size:12px; color:var(--text2); font-weight:500; }
+
+/* Section */
+.section { background:var(--bg2); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:16px; }
+.section-header { padding:16px 20px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.section-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+.btn { padding:7px 14px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:none; display:inline-flex; align-items:center; gap:6px; transition:all 0.2s; }
+.btn-primary { background:var(--grad); color:#fff; }
+.btn-danger { background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid rgba(239,68,68,0.3); }
+.btn-ghost { background:var(--bg3); color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover { border-color:var(--border2); color:var(--text); }
+.btn svg { width:13px; height:13px; }
+
+table { width:100%; border-collapse:collapse; }
+thead th { padding:11px 20px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:var(--text3); text-transform:uppercase; text-align:left; background:var(--bg3); border-bottom:1px solid var(--border); }
+tbody td { padding:13px 20px; font-size:13px; border-bottom:1px solid var(--border); }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:rgba(124,58,237,0.03); }
+
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-success { background:rgba(16,185,129,0.15); color:var(--success); }
+.badge-danger { background:rgba(239,68,68,0.15); color:var(--danger); }
+.badge-warning { background:rgba(245,158,11,0.15); color:var(--warning); }
+.badge-info { background:rgba(59,130,246,0.15); color:var(--info); }
+.badge-dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+.alert-item { padding:14px 20px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:12px; }
+.alert-item:last-child { border-bottom:none; }
+.alert-dot { width:7px; height:7px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+.alert-title { font-size:13px; font-weight:500; }
+.alert-time { font-size:11px; color:var(--text3); margin-top:1px; }
+.alert-msg { font-size:12px; color:var(--text2); margin-top:3px; }
+
+.page { display:none; }
+.page.active { display:block; }
+.empty-state { padding:36px; text-align:center; color:var(--text3); font-size:13px; }
+.loading { padding:36px; text-align:center; color:var(--text3); font-size:13px; }
+
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-thumb { background:var(--bg3); border-radius:3px; }
+
+.queue-stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; padding:16px 20px; }
+.q-stat { text-align:center; padding:14px; background:var(--bg3); border-radius:10px; }
+.q-stat-val { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; }
+.q-stat-label { font-size:11px; color:var(--text2); margin-top:3px; }
+</style>
+</head>
+<body>
+
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">Bovedix</span>
+  </div>
+  <nav>
+    <div class="nav-item active" onclick="showPage('home', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      <span data-i18n="nav.home">Home</span>
+    </div>
+    <div class="nav-item" onclick="showPage('restore', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+      <span data-i18n="nav.restore">Restore & Download</span>
+    </div>
+    <div class="nav-item" onclick="showPage('downloads', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+      <span data-i18n="nav.downloads">Downloads</span>
+    </div>
+    <div class="nav-item" onclick="showPage('alerts', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span data-i18n="nav.alerts">Alerts</span>
+    </div>
+    <div class="nav-item" onclick="showPage('queue', this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+      <span data-i18n="nav.queue">Queue</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="lang-selector">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('es')">ES</button>
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/></svg>
+      <span data-i18n="theme.toggle">Theme</span>
+      <div class="toggle-switch"></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-left">
+      <div class="topbar-title" id="pageTitle" data-i18n="nav.home">Home</div>
+    </div>
+    <div class="topbar-right">
+      <div class="user-pill">
+        <div class="user-dot"></div>
+        <span id="userDisplay">Loading...</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Home -->
+    <div class="page active" id="page-home">
+      <div class="stats-row" id="userStats"><div class="loading">Loading...</div></div>
+      <div style="margin-bottom:12px;"><div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;" data-i18n="home.restoreTitle">Restore & Download</div>
+      <div class="restore-grid">
+        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('full')"><div class="restore-icon">📦</div><div class="restore-label" data-i18n="restore.full">Full Backups</div></div>
+        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('homedir')"><div class="restore-icon">📁</div><div class="restore-label" data-i18n="restore.homedir">Home Directory</div></div>
+        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('db')"><div class="restore-icon">🗄️</div><div class="restore-label" data-i18n="restore.db">Databases</div></div>
+        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('mail')"><div class="restore-icon">✉️</div><div class="restore-label" data-i18n="restore.mail">Email Accounts</div></div>
+        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('ssl')"><div class="restore-icon">🔒</div><div class="restore-label" data-i18n="restore.ssl">Certificates</div></div>
+      </div></div>
+      <div style="font-family:'Syne',sans-serif;font-size:14px;font-weight:700;margin-bottom:12px;" data-i18n="home.manageTitle">View & Manage</div>
+      <div class="restore-grid">
+        <div class="restore-card" onclick="showPage('queue',null)"><div class="restore-icon">⚙️</div><div class="restore-label" data-i18n="nav.queue">Queue</div></div>
+        <div class="restore-card" onclick="triggerBackupUser()"><div class="restore-icon">🚀</div><div class="restore-label" data-i18n="home.createBackup">Create Backup</div></div>
+        <div class="restore-card" onclick="showPage('downloads',null)"><div class="restore-icon">⬇️</div><div class="restore-label" data-i18n="nav.downloads">Downloads</div></div>
+        <div class="restore-card" onclick="showPage('alerts',null)"><div class="restore-icon">🔔</div><div class="restore-label" data-i18n="nav.alerts">Alerts</div></div>
+      </div>
+    </div>
+
+    <!-- Restore -->
+    <div class="page" id="page-restore">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.restore">Restore & Download</div>
+          <button class="btn btn-ghost" onclick="loadUserBackups()">↻</button>
+        </div>
+        <div style="padding:0 20px; border-bottom:1px solid var(--border); display:flex; gap:4px; overflow-x:auto;">
+          <div id="tab-full" class="restore-tab-btn active" onclick="setRestoreTab('full')" style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid var(--primary);color:var(--accent);white-space:nowrap;" data-i18n="restore.full">Full Backups</div>
+          <div id="tab-homedir" class="restore-tab-btn" onclick="setRestoreTab('homedir')" style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;" data-i18n="restore.homedir">Home Directory</div>
+          <div id="tab-db" class="restore-tab-btn" onclick="setRestoreTab('db')" style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;" data-i18n="restore.db">Databases</div>
+          <div id="tab-mail" class="restore-tab-btn" onclick="setRestoreTab('mail')" style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;" data-i18n="restore.mail">Email Accounts</div>
+          <div id="tab-ssl" class="restore-tab-btn" onclick="setRestoreTab('ssl')" style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;" data-i18n="restore.ssl">Certificates</div>
+        </div>
+        <div id="restoreTable"><div class="loading">Loading...</div></div>
+        <div style="padding:14px 20px; display:flex; gap:8px;">
+          <button class="btn btn-primary" onclick="doRestore()" data-i18n="btn.restore">↺ Restore</button>
+          <button class="btn btn-ghost" onclick="doDownload()" data-i18n="btn.download">⬇ Download</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Downloads -->
+    <div class="page" id="page-downloads">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.downloads">Downloads</div>
+          <button class="btn btn-ghost" onclick="loadUserBackups()">↻</button>
+        </div>
+        <div id="downloadsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="page" id="page-alerts">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.alerts">Alerts</div>
+          <button class="btn btn-danger" onclick="loadUserAlerts()" data-i18n="btn.clearAlerts">✕ Clear Alerts</button>
+        </div>
+        <div id="userAlertsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Queue -->
+    <div class="page" id="page-queue">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.queue">Queue</div>
+          <button class="btn btn-ghost" onclick="loadUserJobs()">↻</button>
+        </div>
+        <div class="queue-stats" id="queueStats">
+          <div class="q-stat"><div class="q-stat-val" id="qPending">0</div><div class="q-stat-label" data-i18n="queue.pending">Pending</div></div>
+          <div class="q-stat"><div class="q-stat-val" id="qRunning">0</div><div class="q-stat-label" data-i18n="queue.running">Processing</div></div>
+          <div class="q-stat"><div class="q-stat-val" id="qDone">0</div><div class="q-stat-label" data-i18n="queue.done">Completed</div></div>
+          <div class="q-stat"><div class="q-stat-val" id="qFailed">0</div><div class="q-stat-label" data-i18n="queue.failed">Failed</div></div>
+        </div>
+        <div id="userJobsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const i18n = {
+  en: {
+    'nav.home':'Home','nav.restore':'Restore & Download','nav.downloads':'Downloads',
+    'nav.alerts':'Alerts','nav.queue':'Queue','theme.toggle':'Theme',
+    'home.restoreTitle':'Restore & Download','home.manageTitle':'View & Manage',
+    'home.createBackup':'Create Backup On Demand',
+    'restore.full':'Full Backups','restore.homedir':'Home Directory',
+    'restore.db':'Databases','restore.mail':'Email Accounts','restore.ssl':'Certificates',
+    'btn.restore':'Restore','btn.download':'Download','btn.clearAlerts':'Clear Alerts',
+    'queue.pending':'Pending','queue.running':'Processing','queue.done':'Completed','queue.failed':'Failed/Canceled',
+    'stat.backups':'Total Backups','stat.alerts':'New Alerts','stat.usage':'Account Usage',
+  },
+  es: {
+    'nav.home':'Inicio','nav.restore':'Restaurar y Descargar','nav.downloads':'Descargas',
+    'nav.alerts':'Alertas','nav.queue':'Cola','theme.toggle':'Tema',
+    'home.restoreTitle':'Restaurar y Descargar','home.manageTitle':'Ver y Gestionar',
+    'home.createBackup':'Crear Respaldo Ahora',
+    'restore.full':'Respaldo Completo','restore.homedir':'Directorio de Inicio',
+    'restore.db':'Bases de Datos','restore.mail':'Cuentas de Correo','restore.ssl':'Certificados',
+    'btn.restore':'Restaurar','btn.download':'Descargar','btn.clearAlerts':'Limpiar Alertas',
+    'queue.pending':'Pendiente','queue.running':'Procesando','queue.done':'Completado','queue.failed':'Fallido/Cancelado',
+    'stat.backups':'Total Respaldos','stat.alerts':'Alertas Nuevas','stat.usage':'Uso de Cuenta',
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'en';
+let cpanel_user = null;
+let token = null;
+let backups = [];
+let selectedBackup = null;
+let currentTab = 'full';
+
+function t(key) { return i18n[lang][key] || key; }
+
+function setLang(l) {
+  lang = l; localStorage.setItem('lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === l.toUpperCase()));
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if(i18n[lang][k]) el.textContent = i18n[lang][k]; });
+}
+
+function toggleTheme() {
+  const th = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', th); localStorage.setItem('theme', th);
+}
+
+function getToken() {
+  const params = new URLSearchParams(window.location.search);
+  return params.get('token') || localStorage.getItem('bvx_user_token');
+}
+
+function api(path, opts={}) {
+  return fetch(path, { ...opts, headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}`, ...(opts.headers||{}) } }).then(r => r.json());
+}
+
+function showPage(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if(el) el.classList.add('active');
+  document.getElementById('pageTitle').textContent = t('nav.' + page);
+  if(page === 'home') loadUserStats();
+  if(page === 'restore') loadUserBackups();
+  if(page === 'downloads') loadDownloads();
+  if(page === 'alerts') loadUserAlerts();
+  if(page === 'queue') loadUserJobs();
+}
+
+function setRestoreTab(tab) {
+  currentTab = tab;
+  document.querySelectorAll('.restore-tab-btn').forEach(b => {
+    b.style.borderBottomColor = 'transparent'; b.style.color = 'var(--text2)';
+  });
+  const active = document.getElementById('tab-' + tab);
+  if(active) { active.style.borderBottomColor = 'var(--primary)'; active.style.color = 'var(--accent)'; }
+  renderRestoreTable();
+}
+
+async function loadUserStats() {
+  if(!cpanel_user) return;
+  try {
+    const s = await api(`/api/accounts/${cpanel_user}/status`);
+    const alerts = await api(`/api/jobs/alerts/${cpanel_user}`);
+    const unread = alerts.filter ? alerts.filter(a => !a.read).length : 0;
+    document.getElementById('userStats').innerHTML = `
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${unread}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.account?.plan||'basic'}</div><div class="stat-label">Plan</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+    `;
+  } catch { document.getElementById('userStats').innerHTML = '<div class="loading">Error loading stats</div>'; }
+}
+
+async function loadUserBackups() {
+  if(!cpanel_user) return;
+  try {
+    backups = await api(`/api/backups/${cpanel_user}`);
+    renderRestoreTable();
+    renderDownloads();
+  } catch { document.getElementById('restoreTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+function renderRestoreTable() {
+  const filtered = backups.filter(b => currentTab === 'full' ? true : b.type === currentTab);
+  document.getElementById('restoreTable').innerHTML = filtered.length ? `
+    <table><thead><tr><th><input type="checkbox"></th><th>Created</th><th>Type</th><th>Destination</th><th>Size</th></tr></thead>
+    <tbody>${filtered.map((b,i) => `<tr onclick="selectBackup('${b.id}',this)" style="cursor:pointer;">
+      <td><input type="radio" name="selBackup" value="${b.id}" ${i===0?'checked':''}></td>
+      <td>${new Date(b.created_at).toLocaleString()}</td>
+      <td><span class="badge badge-info">${b.type}</span></td>
+      <td>Hetzner Storage</td>
+      <td>${b.filesize?(b.filesize/1024/1024).toFixed(2)+' MB':'—'}</td>
+    </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No backups found</div>';
+  if(filtered.length) selectedBackup = filtered[0].id;
+}
+
+function renderDownloads() {
+  document.getElementById('downloadsTable').innerHTML = backups.length ? `
+    <table><thead><tr><th>Created</th><th>Type</th><th>Account</th><th>Size</th><th>Notes</th><th></th></tr></thead>
+    <tbody>${backups.map(b => `<tr>
+      <td>${new Date(b.created_at).toLocaleString()}</td>
+      <td><span class="badge badge-info">${b.type}</span></td>
+      <td>${cpanel_user}<br><span style="color:var(--text3);font-size:11px;">ID: ${b.id.substring(0,8)}</span></td>
+      <td>${b.filesize?(b.filesize/1024/1024).toFixed(2)+' MB':'—'}</td>
+      <td><span style="color:var(--text3);font-size:12px;">—</span></td>
+      <td><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;">⬇ Download</button></td>
+    </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No downloads</div>';
+}
+
+function selectBackup(id, row) {
+  selectedBackup = id;
+  document.querySelectorAll('#restoreTable tbody tr').forEach(r => r.style.background = '');
+  row.style.background = 'rgba(124,58,237,0.08)';
+}
+
+function doRestore() { if(selectedBackup) alert('Restore initiated for backup: ' + selectedBackup); }
+function doDownload() { if(selectedBackup) alert('Download initiated for backup: ' + selectedBackup); }
+
+async function loadUserAlerts() {
+  if(!cpanel_user) return;
+  try {
+    const alerts = await api(`/api/jobs/alerts/${cpanel_user}`);
+    document.getElementById('userAlertsTable').innerHTML = alerts.length ? alerts.map(a => `
+      <div class="alert-item">
+        <div class="alert-dot" style="background:${a.level==='warning'?'var(--warning)':a.level==='info'?'var(--info)':'var(--danger)'}"></div>
+        <div><div class="alert-title">${a.title}</div><div class="alert-time">${new Date(a.created_at).toLocaleString()}</div><div class="alert-msg">${a.message||''}</div></div>
+        <span class="badge badge-${a.level==='info'?'info':a.level==='warning'?'warning':'danger'}">${a.level}</span>
+      </div>`).join('') : '<div class="empty-state">No alerts</div>';
+  } catch { document.getElementById('userAlertsTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+async function loadUserJobs() {
+  if(!cpanel_user) return;
+  try {
+    const jobs = await api(`/api/jobs/${cpanel_user}`);
+    const pending = jobs.filter(j=>j.status==='pending').length;
+    const running = jobs.filter(j=>j.status==='running').length;
+    const done = jobs.filter(j=>j.status==='completed').length;
+    const failed = jobs.filter(j=>j.status==='failed').length;
+    document.getElementById('qPending').textContent = pending;
+    document.getElementById('qRunning').textContent = running;
+    document.getElementById('qDone').textContent = done;
+    document.getElementById('qFailed').textContent = failed;
+    document.getElementById('userJobsTable').innerHTML = jobs.length ? `
+      <table><thead><tr><th>Type</th><th>Status</th><th>Started</th><th>Execution Time</th></tr></thead>
+      <tbody>${jobs.map(j => `<tr>
+        <td>${j.type}</td>
+        <td><span class="badge badge-${j.status==='completed'?'success':j.status==='running'?'info':j.status==='failed'?'danger':'warning'}"><span class="badge-dot"></span>${j.status}</span></td>
+        <td style="font-size:12px;color:var(--text3);">${j.started_at?new Date(j.started_at).toLocaleString():'—'}</td>
+        <td style="font-size:12px;color:var(--text3);">${j.started_at&&j.ended_at?Math.round((new Date(j.ended_at)-new Date(j.started_at))/1000)+' sec':'—'}</td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No queue items</div>';
+  } catch { document.getElementById('userJobsTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+async function triggerBackupUser() {
+  if(!cpanel_user) return;
+  if(!confirm('Create a new backup now?')) return;
+  await api(`/api/backups/${cpanel_user}`, { method:'POST' });
+  showPage('queue', null);
+}
+
+// Init
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+token = getToken();
+if(token) {
+  localStorage.setItem('bvx_user_token', token);
+  try {
+    const payload = JSON.parse(atob(token.split('.')[1]));
+    cpanel_user = payload.cpanel_user;
+    document.getElementById('userDisplay').textContent = cpanel_user + (payload.domain ? ' — ' + payload.domain : '');
+  } catch {}
+}
+setLang(lang);
+loadUserStats();
+</script>
+</body>
+</html>

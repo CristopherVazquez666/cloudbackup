@@ -1,0 +1,595 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bovedix — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/lucide/0.263.1/lucide.min.css">
+<style>
+:root {
+  --bg: #0A0A0F;
+  --bg2: #111118;
+  --bg3: #1A1A26;
+  --border: rgba(124,58,237,0.15);
+  --border2: rgba(124,58,237,0.3);
+  --primary: #7C3AED;
+  --primary2: #4F46E5;
+  --accent: #A78BFA;
+  --text: #F1F0FF;
+  --text2: #9B98C0;
+  --text3: #5C5A7A;
+  --success: #10B981;
+  --danger: #EF4444;
+  --warning: #F59E0B;
+  --info: #3B82F6;
+  --grad: linear-gradient(135deg, #7C3AED, #4F46E5);
+  --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
+}
+[data-theme="light"] {
+  --bg: #F5F4FF;
+  --bg2: #FFFFFF;
+  --bg3: #EDE9FF;
+  --border: rgba(124,58,237,0.15);
+  --border2: rgba(124,58,237,0.3);
+  --text: #1A1730;
+  --text2: #5C5A7A;
+  --text3: #9B98C0;
+  --card-shadow: 0 4px 24px rgba(124,58,237,0.08);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; }
+
+/* Sidebar */
+.sidebar {
+  width:220px; min-width:220px; background:var(--bg2); border-right:1px solid var(--border);
+  display:flex; flex-direction:column; padding:0; overflow:hidden;
+}
+.logo {
+  padding:24px 20px 20px; border-bottom:1px solid var(--border);
+  display:flex; align-items:center; gap:10px;
+}
+.logo-icon {
+  width:36px; height:36px; background:var(--grad); border-radius:10px;
+  display:flex; align-items:center; justify-content:center; font-size:18px;
+}
+.logo-text { font-family:'Syne',sans-serif; font-weight:800; font-size:18px; background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.logo-badge { font-size:10px; background:rgba(124,58,237,0.2); color:var(--accent); padding:2px 6px; border-radius:4px; margin-left:auto; font-weight:500; -webkit-text-fill-color:var(--accent); }
+
+nav { flex:1; padding:16px 12px; overflow-y:auto; }
+.nav-section { font-size:10px; font-weight:600; letter-spacing:0.1em; color:var(--text3); padding:12px 8px 6px; text-transform:uppercase; }
+.nav-item {
+  display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+  cursor:pointer; color:var(--text2); font-size:14px; margin-bottom:2px;
+  transition:all 0.2s; border:1px solid transparent;
+}
+.nav-item:hover { background:var(--bg3); color:var(--text); }
+.nav-item.active { background:rgba(124,58,237,0.15); color:var(--accent); border-color:var(--border2); }
+.nav-item svg { width:16px; height:16px; flex-shrink:0; }
+.nav-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:10px; padding:2px 6px; border-radius:20px; font-weight:600; }
+
+.sidebar-footer { padding:16px 12px; border-top:1px solid var(--border); }
+.theme-toggle {
+  display:flex; align-items:center; gap:8px; padding:8px 12px;
+  background:var(--bg3); border-radius:10px; cursor:pointer; font-size:13px; color:var(--text2);
+  border:1px solid var(--border);
+}
+.toggle-switch { margin-left:auto; width:36px; height:20px; background:var(--bg); border-radius:10px; position:relative; border:1px solid var(--border2); cursor:pointer; }
+.toggle-switch::after { content:''; position:absolute; width:14px; height:14px; background:var(--accent); border-radius:50%; top:2px; left:2px; transition:transform 0.2s; }
+[data-theme="light"] .toggle-switch::after { transform:translateX(16px); }
+
+/* Main */
+.main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
+.topbar {
+  padding:16px 28px; border-bottom:1px solid var(--border); background:var(--bg2);
+  display:flex; align-items:center; justify-content:space-between;
+}
+.topbar-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; }
+.topbar-right { display:flex; align-items:center; gap:16px; }
+.server-time { font-size:12px; color:var(--text3); }
+.admin-badge {
+  display:flex; align-items:center; gap:8px; background:var(--bg3);
+  padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:13px; cursor:pointer;
+}
+.admin-dot { width:8px; height:8px; background:var(--success); border-radius:50%; }
+.logout-btn {
+  background:var(--grad); color:#fff; border:none; padding:6px 16px;
+  border-radius:8px; cursor:pointer; font-size:13px; font-weight:500;
+}
+
+.content { flex:1; overflow-y:auto; padding:28px; }
+
+/* Login screen */
+.login-overlay {
+  position:fixed; inset:0; background:var(--bg);
+  display:flex; align-items:center; justify-content:center; z-index:100;
+}
+.login-card {
+  background:var(--bg2); border:1px solid var(--border2); border-radius:20px;
+  padding:40px; width:380px;
+}
+.login-logo { text-align:center; margin-bottom:32px; }
+.login-logo .logo-icon { width:56px; height:56px; border-radius:16px; margin:0 auto 12px; font-size:28px; }
+.login-logo h1 { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
+.login-logo p { color:var(--text2); font-size:14px; margin-top:4px; }
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-size:12px; font-weight:500; color:var(--text2); margin-bottom:6px; letter-spacing:0.05em; }
+.form-group input {
+  width:100%; background:var(--bg3); border:1px solid var(--border);
+  border-radius:10px; padding:12px 16px; color:var(--text); font-size:14px;
+  outline:none; transition:border 0.2s;
+}
+.form-group input:focus { border-color:var(--primary); }
+.login-btn {
+  width:100%; background:var(--grad); color:#fff; border:none;
+  padding:14px; border-radius:10px; font-size:15px; font-weight:600;
+  cursor:pointer; margin-top:8px; font-family:'DM Sans',sans-serif;
+  transition:opacity 0.2s;
+}
+.login-btn:hover { opacity:0.9; }
+.login-error { color:var(--danger); font-size:13px; margin-top:8px; text-align:center; }
+
+/* Stats grid */
+.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.stat-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+  padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
+  transition:border-color 0.2s;
+}
+.stat-card:hover { border-color:var(--border2); }
+.stat-info {}
+.stat-value { font-family:'Syne',sans-serif; font-size:32px; font-weight:800; line-height:1; }
+.stat-label { font-size:13px; color:var(--text2); margin-top:4px; }
+.stat-sub { font-size:11px; color:var(--text3); margin-top:2px; }
+.stat-icon {
+  width:48px; height:48px; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  background:rgba(124,58,237,0.1); color:var(--accent);
+}
+.stat-icon svg { width:22px; height:22px; }
+.stat-icon.green { background:rgba(16,185,129,0.1); color:var(--success); }
+.stat-icon.red { background:rgba(239,68,68,0.1); color:var(--danger); }
+.stat-icon.blue { background:rgba(59,130,246,0.1); color:var(--info); }
+
+/* Tables */
+.section { background:var(--bg2); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:20px; }
+.section-header { padding:18px 24px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.section-title { font-family:'Syne',sans-serif; font-size:16px; font-weight:700; }
+.section-actions { display:flex; gap:8px; }
+.btn { padding:7px 16px; border-radius:8px; font-size:13px; font-weight:500; cursor:pointer; border:none; display:flex; align-items:center; gap:6px; transition:all 0.2s; }
+.btn-primary { background:var(--grad); color:#fff; }
+.btn-ghost { background:var(--bg3); color:var(--text2); border:1px solid var(--border); }
+.btn-ghost:hover { border-color:var(--border2); color:var(--text); }
+.btn svg { width:14px; height:14px; }
+
+table { width:100%; border-collapse:collapse; }
+thead th { padding:12px 24px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:var(--text3); text-transform:uppercase; text-align:left; background:var(--bg3); border-bottom:1px solid var(--border); }
+tbody td { padding:14px 24px; font-size:14px; border-bottom:1px solid var(--border); }
+tbody tr:last-child td { border-bottom:none; }
+tbody tr:hover td { background:rgba(124,58,237,0.04); }
+
+.badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+.badge-success { background:rgba(16,185,129,0.15); color:var(--success); }
+.badge-danger { background:rgba(239,68,68,0.15); color:var(--danger); }
+.badge-warning { background:rgba(245,158,11,0.15); color:var(--warning); }
+.badge-info { background:rgba(59,130,246,0.15); color:var(--info); }
+.badge-dot { width:6px; height:6px; border-radius:50%; background:currentColor; }
+
+/* Alert items */
+.alert-item { padding:16px 24px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; gap:14px; }
+.alert-item:last-child { border-bottom:none; }
+.alert-dot { width:8px; height:8px; border-radius:50%; margin-top:5px; flex-shrink:0; }
+.alert-content { flex:1; }
+.alert-title { font-size:14px; font-weight:500; }
+.alert-time { font-size:12px; color:var(--text3); margin-top:2px; }
+.alert-msg { font-size:13px; color:var(--text2); margin-top:4px; }
+
+/* Page sections */
+.page { display:none; }
+.page.active { display:block; }
+
+/* Lang selector */
+.lang-selector { display:flex; gap:4px; background:var(--bg3); padding:3px; border-radius:8px; border:1px solid var(--border); }
+.lang-btn { padding:4px 10px; border-radius:6px; font-size:12px; cursor:pointer; color:var(--text2); border:none; background:transparent; font-family:'DM Sans',sans-serif; }
+.lang-btn.active { background:var(--grad); color:#fff; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width:6px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--bg3); border-radius:3px; }
+
+.empty-state { padding:40px; text-align:center; color:var(--text3); }
+.empty-state svg { width:32px; height:32px; margin:0 auto 12px; opacity:0.4; display:block; }
+
+.loading { padding:40px; text-align:center; color:var(--text3); }
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div class="login-overlay" id="loginOverlay">
+  <div class="login-card">
+    <div class="login-logo">
+      <div class="logo-icon">⚡</div>
+      <h1>Bovedix</h1>
+      <p data-i18n="login.subtitle">Admin Panel — Secure Access</p>
+    </div>
+    <div class="form-group">
+      <label data-i18n="login.user">USERNAME</label>
+      <input type="text" id="loginUser" placeholder="admin" autocomplete="username">
+    </div>
+    <div class="form-group">
+      <label data-i18n="login.pass">PASSWORD</label>
+      <input type="password" id="loginPass" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="login-btn" onclick="doLogin()" data-i18n="login.btn">Sign In</button>
+    <div class="login-error" id="loginError"></div>
+  </div>
+</div>
+
+<!-- App -->
+<div class="sidebar">
+  <div class="logo">
+    <div class="logo-icon">⚡</div>
+    <span class="logo-text">Bovedix</span>
+    <span class="logo-badge">ADMIN</span>
+  </div>
+  <nav>
+    <div class="nav-section" data-i18n="nav.general">General</div>
+    <div class="nav-item active" onclick="showPage('dashboard', this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span data-i18n="nav.dashboard">Dashboard</span>
+    </div>
+    <div class="nav-item" onclick="showPage('accounts', this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span data-i18n="nav.accounts">Accounts</span>
+    </div>
+    <div class="nav-section" data-i18n="nav.backup">Backups</div>
+    <div class="nav-item" onclick="showPage('backups', this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      <span data-i18n="nav.backups">Backups</span>
+    </div>
+    <div class="nav-item" onclick="showPage('jobs', this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+      <span data-i18n="nav.jobs">Jobs</span>
+    </div>
+    <div class="nav-section" data-i18n="nav.system">System</div>
+    <div class="nav-item" onclick="showPage('alerts', this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span data-i18n="nav.alerts">Alerts</span>
+      <span class="nav-badge" id="alertBadge" style="display:none">0</span>
+    </div>
+  </nav>
+  <div class="sidebar-footer">
+    <div class="lang-selector" style="margin-bottom:10px;">
+      <button class="lang-btn active" onclick="setLang('en')">EN</button>
+      <button class="lang-btn" onclick="setLang('es')">ES</button>
+    </div>
+    <div class="theme-toggle" onclick="toggleTheme()">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
+      <span data-i18n="theme.toggle">Theme</span>
+      <div class="toggle-switch"></div>
+    </div>
+  </div>
+</div>
+
+<div class="main">
+  <div class="topbar">
+    <div class="topbar-title" id="pageTitle" data-i18n="nav.dashboard">Dashboard</div>
+    <div class="topbar-right">
+      <span class="server-time" id="serverTime"></span>
+      <div class="admin-badge">
+        <div class="admin-dot"></div>
+        <span data-i18n="topbar.loggedAs">Logged in as:</span>&nbsp;<strong id="adminName">admin</strong>
+      </div>
+      <button class="logout-btn" onclick="logout()" data-i18n="topbar.logout">Logout</button>
+    </div>
+  </div>
+
+  <div class="content">
+    <!-- Dashboard -->
+    <div class="page active" id="page-dashboard">
+      <div class="stats-grid" id="statsGrid"><div class="loading">Loading...</div></div>
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="dash.recentAlerts">Recent Alerts</div>
+          <div class="section-actions">
+            <button class="btn btn-ghost" onclick="loadDashboard()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+              <span data-i18n="btn.refresh">Refresh</span>
+            </button>
+          </div>
+        </div>
+        <div id="recentAlerts"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Accounts -->
+    <div class="page" id="page-accounts">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.accounts">Accounts</div>
+          <div class="section-actions">
+            <button class="btn btn-ghost" onclick="loadAccounts()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+            </button>
+            <button class="btn btn-primary" onclick="showActivateForm()">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              <span data-i18n="btn.activate">Activate Account</span>
+            </button>
+          </div>
+        </div>
+        <div id="accountsActivateForm" style="display:none; padding:20px 24px; border-bottom:1px solid var(--border); background:var(--bg3);">
+          <div style="display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; align-items:end;">
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.cpanelUser">cPanel User</label><input id="newUser" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;" placeholder="username"></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.domain">Domain</label><input id="newDomain" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;" placeholder="example.com"></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.plan">Plan</label><select id="newPlan" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;"><option value="basic">Basic</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
+            <button class="btn btn-primary" onclick="activateAccount()" data-i18n="btn.activate">Activate</button>
+          </div>
+          <div id="activateMsg" style="margin-top:10px;font-size:13px;"></div>
+        </div>
+        <div id="accountsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Backups -->
+    <div class="page" id="page-backups">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.backups">Backups</div>
+          <button class="btn btn-ghost" onclick="loadBackups()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+          </button>
+        </div>
+        <div id="backupsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Jobs -->
+    <div class="page" id="page-jobs">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.jobs">Jobs</div>
+          <button class="btn btn-ghost" onclick="loadJobs()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+          </button>
+        </div>
+        <div id="jobsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Alerts -->
+    <div class="page" id="page-alerts">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.alerts">Alerts</div>
+          <button class="btn btn-ghost" onclick="loadAlerts()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+          </button>
+        </div>
+        <div id="alertsTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const i18n = {
+  en: {
+    'login.subtitle': 'Admin Panel — Secure Access',
+    'login.user': 'USERNAME', 'login.pass': 'PASSWORD', 'login.btn': 'Sign In',
+    'nav.general': 'General', 'nav.dashboard': 'Dashboard', 'nav.accounts': 'Accounts',
+    'nav.backup': 'Backups', 'nav.backups': 'Backups', 'nav.jobs': 'Jobs',
+    'nav.system': 'System', 'nav.alerts': 'Alerts',
+    'theme.toggle': 'Theme', 'topbar.loggedAs': 'Logged in as:', 'topbar.logout': 'Logout',
+    'dash.recentAlerts': 'Recent Alerts', 'btn.refresh': 'Refresh',
+    'btn.activate': 'Activate Account', 'btn.triggerBackup': 'Backup',
+    'form.cpanelUser': 'cPanel User', 'form.domain': 'Domain', 'form.plan': 'Plan',
+    'stat.accounts': 'Total Accounts', 'stat.backups': 'Total Backups',
+    'stat.jobs': 'Total Jobs', 'stat.running': 'Jobs Running', 'stat.alerts': 'New Alerts',
+    'stat.storage': 'Storage Used',
+  },
+  es: {
+    'login.subtitle': 'Panel Admin — Acceso Seguro',
+    'login.user': 'USUARIO', 'login.pass': 'CONTRASEÑA', 'login.btn': 'Ingresar',
+    'nav.general': 'General', 'nav.dashboard': 'Inicio', 'nav.accounts': 'Cuentas',
+    'nav.backup': 'Respaldos', 'nav.backups': 'Respaldos', 'nav.jobs': 'Trabajos',
+    'nav.system': 'Sistema', 'nav.alerts': 'Alertas',
+    'theme.toggle': 'Tema', 'topbar.loggedAs': 'Sesión:', 'topbar.logout': 'Salir',
+    'dash.recentAlerts': 'Alertas Recientes', 'btn.refresh': 'Actualizar',
+    'btn.activate': 'Activar Cuenta', 'btn.triggerBackup': 'Respaldar',
+    'form.cpanelUser': 'Usuario cPanel', 'form.domain': 'Dominio', 'form.plan': 'Plan',
+    'stat.accounts': 'Total Cuentas', 'stat.backups': 'Total Respaldos',
+    'stat.jobs': 'Total Trabajos', 'stat.running': 'Trabajos Activos', 'stat.alerts': 'Alertas Nuevas',
+    'stat.storage': 'Almacenamiento',
+  }
+};
+
+let lang = localStorage.getItem('lang') || 'en';
+let token = localStorage.getItem('bvx_admin_token');
+let currentPage = 'dashboard';
+
+function t(key) { return i18n[lang][key] || key; }
+
+function setLang(l) {
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === l.toUpperCase()));
+  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if(i18n[lang][k]) el.textContent = i18n[lang][k]; });
+}
+
+function toggleTheme() {
+  const t = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', t);
+  localStorage.setItem('theme', t);
+}
+
+function updateClock() {
+  document.getElementById('serverTime').textContent = new Date().toLocaleString();
+}
+
+async function doLogin() {
+  const username = document.getElementById('loginUser').value;
+  const password = document.getElementById('loginPass').value;
+  try {
+    const r = await fetch('/api/auth/login', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({username,password}) });
+    const d = await r.json();
+    if(d.token) {
+      token = d.token; localStorage.setItem('bvx_admin_token', token);
+      document.getElementById('loginOverlay').style.display = 'none';
+      document.getElementById('adminName').textContent = username;
+      loadDashboard();
+    } else { document.getElementById('loginError').textContent = 'Invalid credentials'; }
+  } catch { document.getElementById('loginError').textContent = 'Connection error'; }
+}
+
+function logout() {
+  localStorage.removeItem('bvx_admin_token');
+  token = null;
+  document.getElementById('loginOverlay').style.display = 'flex';
+}
+
+function api(path, opts={}) {
+  return fetch(path, { ...opts, headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}`, ...(opts.headers||{}) } }).then(r => r.json());
+}
+
+function showPage(page, el) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  if(el) el.classList.add('active');
+  currentPage = page;
+  document.getElementById('pageTitle').textContent = t('nav.' + page);
+  if(page === 'dashboard') loadDashboard();
+  if(page === 'accounts') loadAccounts();
+  if(page === 'backups') loadBackups();
+  if(page === 'jobs') loadJobs();
+  if(page === 'alerts') loadAlerts();
+}
+
+async function loadDashboard() {
+  try {
+    const s = await api('/api/jobs/stats/overview');
+    document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.totalAccounts}</div><div class="stat-label">${t('stat.accounts')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.unreadAlerts}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.totalJobs}</div><div class="stat-label">${t('stat.jobs')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.runningJobs}</div><div class="stat-label">${t('stat.running')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">—</div><div class="stat-label">${t('stat.storage')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div></div>
+    `;
+    const alertBadge = document.getElementById('alertBadge');
+    if(s.unreadAlerts > 0) { alertBadge.style.display='inline'; alertBadge.textContent = s.unreadAlerts; } else { alertBadge.style.display='none'; }
+    document.getElementById('recentAlerts').innerHTML = s.recentAlerts.length ? s.recentAlerts.map(a => `
+      <div class="alert-item">
+        <div class="alert-dot" style="background:${a.level==='warning'?'var(--warning)':a.level==='info'?'var(--info)':'var(--danger)'}"></div>
+        <div class="alert-content"><div class="alert-title">${a.title}</div><div class="alert-time">${new Date(a.created_at).toLocaleString()}</div><div class="alert-msg">${a.message||''}</div></div>
+        <span class="badge badge-${a.level==='info'?'info':a.level==='warning'?'warning':'danger'}">${a.level}</span>
+      </div>`).join('') : '<div class="empty-state">No alerts</div>';
+  } catch(e) { document.getElementById('statsGrid').innerHTML = '<div class="loading">Error loading stats</div>'; }
+}
+
+async function loadAccounts() {
+  try {
+    const accounts = await api('/api/accounts');
+    document.getElementById('accountsTable').innerHTML = accounts.length ? `
+      <table><thead><tr><th>User</th><th>Domain</th><th>Plan</th><th>Backups</th><th>Status</th><th>Created</th><th></th></tr></thead>
+      <tbody>${accounts.map(a => `<tr>
+        <td><strong>${a.cpanel_user}</strong></td>
+        <td>${a.domain}</td>
+        <td><span class="badge badge-info">${a.plan}</span></td>
+        <td>${a.totalBackups}</td>
+        <td><span class="badge badge-${a.status==='active'?'success':'danger'}">${a.status}</span></td>
+        <td style="color:var(--text3);font-size:13px;">${new Date(a.created_at).toLocaleDateString()}</td>
+        <td><button class="btn btn-ghost" onclick="triggerBackup('${a.cpanel_user}')" style="font-size:12px;padding:5px 10px;">${t('btn.triggerBackup')}</button></td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No accounts yet</div>';
+  } catch { document.getElementById('accountsTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+async function loadBackups() {
+  try {
+    const backups = await api('/api/backups/admin/all');
+    document.getElementById('backupsTable').innerHTML = backups.length ? `
+      <table><thead><tr><th>Account</th><th>File</th><th>Type</th><th>Size</th><th>Status</th><th>Date</th></tr></thead>
+      <tbody>${backups.map(b => `<tr>
+        <td><strong>${b.cpanel_user}</strong><div style="font-size:12px;color:var(--text3)">${b.domain}</div></td>
+        <td style="font-size:13px;font-family:monospace;">${b.filename}</td>
+        <td><span class="badge badge-info">${b.type}</span></td>
+        <td>${b.filesize ? (b.filesize/1024/1024).toFixed(2)+' MB' : '—'}</td>
+        <td><span class="badge badge-${b.status==='completed'?'success':'danger'}"><span class="badge-dot"></span>${b.status}</span></td>
+        <td style="color:var(--text3);font-size:13px;">${new Date(b.created_at).toLocaleString()}</td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No backups yet</div>';
+  } catch { document.getElementById('backupsTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+async function loadJobs() {
+  try {
+    const jobs = await api('/api/jobs');
+    document.getElementById('jobsTable').innerHTML = jobs.length ? `
+      <table><thead><tr><th>Account</th><th>Type</th><th>Status</th><th>Started</th><th>Ended</th></tr></thead>
+      <tbody>${jobs.map(j => `<tr>
+        <td><strong>${j.cpanel_user}</strong></td>
+        <td>${j.type}</td>
+        <td><span class="badge badge-${j.status==='completed'?'success':j.status==='running'?'info':j.status==='failed'?'danger':'warning'}"><span class="badge-dot"></span>${j.status}</span></td>
+        <td style="font-size:13px;color:var(--text3);">${j.started_at ? new Date(j.started_at).toLocaleString() : '—'}</td>
+        <td style="font-size:13px;color:var(--text3);">${j.ended_at ? new Date(j.ended_at).toLocaleString() : '—'}</td>
+      </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No jobs yet</div>';
+  } catch { document.getElementById('jobsTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+async function loadAlerts() {
+  try {
+    const alerts = await api('/api/jobs/alerts/all');
+    document.getElementById('alertsTable').innerHTML = alerts.length ? alerts.map(a => `
+      <div class="alert-item">
+        <div class="alert-dot" style="background:${a.level==='warning'?'var(--warning)':a.level==='info'?'var(--info)':'var(--danger)'}"></div>
+        <div class="alert-content">
+          <div class="alert-title">${a.title} ${a.cpanel_user?`<span style="color:var(--text3);font-weight:400;">— ${a.cpanel_user}</span>`:''}
+          </div>
+          <div class="alert-time">${new Date(a.created_at).toLocaleString()}</div>
+          <div class="alert-msg">${a.message||''}</div>
+        </div>
+        <span class="badge badge-${a.level==='info'?'info':a.level==='warning'?'warning':'danger'}">${a.level}</span>
+      </div>`).join('') : '<div class="empty-state">No alerts</div>';
+  } catch { document.getElementById('alertsTable').innerHTML = '<div class="loading">Error</div>'; }
+}
+
+function showActivateForm() {
+  const f = document.getElementById('accountsActivateForm');
+  f.style.display = f.style.display === 'none' ? 'block' : 'none';
+}
+
+async function activateAccount() {
+  const cpanel_user = document.getElementById('newUser').value.trim();
+  const domain = document.getElementById('newDomain').value.trim();
+  const plan = document.getElementById('newPlan').value;
+  if(!cpanel_user || !domain) return;
+  const msg = document.getElementById('activateMsg');
+  msg.textContent = 'Activating...'; msg.style.color = 'var(--text2)';
+  try {
+    const r = await api('/api/accounts/activate', { method:'POST', body:JSON.stringify({cpanel_user, domain, plan}) });
+    if(r.success) { msg.textContent = '✓ Account activated'; msg.style.color = 'var(--success)'; loadAccounts(); }
+    else { msg.textContent = r.error || 'Error'; msg.style.color = 'var(--danger)'; }
+  } catch { msg.textContent = 'Connection error'; msg.style.color = 'var(--danger)'; }
+}
+
+async function triggerBackup(cpanel_user) {
+  if(!confirm(`Trigger backup for ${cpanel_user}?`)) return;
+  await api(`/api/backups/${cpanel_user}`, { method:'POST' });
+  loadJobs();
+}
+
+// Init
+document.addEventListener('keydown', e => { if(e.key === 'Enter' && document.getElementById('loginOverlay').style.display !== 'none') doLogin(); });
+const savedTheme = localStorage.getItem('theme') || 'dark';
+document.documentElement.setAttribute('data-theme', savedTheme);
+setLang(lang);
+setInterval(updateClock, 1000); updateClock();
+
+if(token) {
+  document.getElementById('loginOverlay').style.display = 'none';
+  loadDashboard();
+}
+</script>
+</body>
+</html>
