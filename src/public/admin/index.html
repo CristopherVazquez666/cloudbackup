@@ -11,11 +11,11 @@
   --bg: #0A0A0F;
   --bg2: #111118;
   --bg3: #1A1A26;
-  --border: rgba(124,58,237,0.15);
-  --border2: rgba(124,58,237,0.3);
-  --primary: #7C3AED;
-  --primary2: #4F46E5;
-  --accent: #A78BFA;
+  --border: rgba(249,115,22,0.18);
+  --border2: rgba(249,115,22,0.34);
+  --primary: #F97316;
+  --primary2: #EA580C;
+  --accent: #FDBA74;
   --text: #F1F0FF;
   --text2: #9B98C0;
   --text3: #5C5A7A;
@@ -23,19 +23,19 @@
   --danger: #EF4444;
   --warning: #F59E0B;
   --info: #3B82F6;
-  --grad: linear-gradient(135deg, #7C3AED, #4F46E5);
+  --grad: linear-gradient(135deg, #FB923C, #EA580C);
   --card-shadow: 0 4px 24px rgba(0,0,0,0.4);
 }
 [data-theme="light"] {
-  --bg: #F5F4FF;
+  --bg: #FFF8F2;
   --bg2: #FFFFFF;
-  --bg3: #EDE9FF;
-  --border: rgba(124,58,237,0.15);
-  --border2: rgba(124,58,237,0.3);
-  --text: #1A1730;
-  --text2: #5C5A7A;
-  --text3: #9B98C0;
-  --card-shadow: 0 4px 24px rgba(124,58,237,0.08);
+  --bg3: #FFF0E2;
+  --border: rgba(249,115,22,0.16);
+  --border2: rgba(249,115,22,0.3);
+  --text: #26160A;
+  --text2: #6C5545;
+  --text3: #B08C74;
+  --card-shadow: 0 4px 24px rgba(249,115,22,0.09);
 }
 * { margin:0; padding:0; box-sizing:border-box; }
 body {
@@ -63,11 +63,6 @@ body {
   background:var(--grad); -webkit-background-clip:text; -webkit-text-fill-color:transparent;
   transition:opacity 0.2s ease, transform 0.2s ease;
 }
-.logo-badge {
-  font-size:10px; background:rgba(124,58,237,0.16); color:var(--accent); padding:3px 7px;
-  border-radius:999px; margin-left:auto; font-weight:600; -webkit-text-fill-color:var(--accent);
-  transition:opacity 0.2s ease, transform 0.2s ease;
-}
 .sidebar-toggle {
   position:absolute; top:24px; right:14px; width:28px; height:28px;
   border-radius:999px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2);
@@ -85,7 +80,7 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; }
   transition:all 0.2s; border:1px solid transparent;
 }
 .nav-item:hover { background:var(--bg3); color:var(--text); }
-.nav-item.active { background:rgba(124,58,237,0.15); color:var(--accent); border-color:var(--border2); }
+.nav-item.active { background:rgba(249,115,22,0.14); color:var(--accent); border-color:var(--border2); }
 .nav-item svg { width:17px; height:17px; flex-shrink:0; }
 .nav-item span { transition:opacity 0.16s ease, transform 0.16s ease; }
 .nav-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:10px; padding:2px 6px; border-radius:20px; font-weight:600; }
@@ -104,7 +99,6 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; }
 body.sidebar-collapsed .sidebar { width:78px; min-width:78px; }
 body.sidebar-collapsed .logo { justify-content:center; padding-inline:0; }
 body.sidebar-collapsed .logo-text,
-body.sidebar-collapsed .logo-badge,
 body.sidebar-collapsed .nav-item span:not(.nav-badge),
 body.sidebar-collapsed .lang-selector,
 body.sidebar-collapsed .theme-toggle span,
@@ -114,8 +108,8 @@ body.sidebar-collapsed .toggle-switch {
 body.sidebar-collapsed .lang-selector { margin:0 !important; padding:0; border-width:0; min-height:0; }
 body.sidebar-collapsed .nav-item { justify-content:center; padding-inline:0; }
 body.sidebar-collapsed .nav-badge { display:none !important; }
-body.sidebar-collapsed .sidebar-footer { padding:14px 10px; }
-body.sidebar-collapsed .theme-toggle { justify-content:center; padding:10px 0; }
+body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; }
+body.sidebar-collapsed .theme-toggle { justify-content:center; padding:10px; width:48px; margin:0 auto; gap:0; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); }
 body.sidebar-collapsed .nav-item::after {
   content:attr(data-tooltip);
@@ -213,7 +207,7 @@ body.sidebar-collapsed .nav-item:hover::after {
 .stat-sub { font-size:11px; color:var(--text3); margin-top:2px; }
 .stat-icon {
   width:44px; height:44px; border-radius:14px; display:flex; align-items:center; justify-content:center;
-  background:rgba(124,58,237,0.1); color:var(--accent);
+  background:rgba(249,115,22,0.12); color:var(--accent);
 }
 .stat-icon svg { width:20px; height:20px; }
 .stat-icon.green { background:rgba(16,185,129,0.1); color:var(--success); }
@@ -235,7 +229,7 @@ table { width:100%; border-collapse:collapse; }
 thead th { padding:12px 24px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:var(--text3); text-transform:uppercase; text-align:left; background:var(--bg3); border-bottom:1px solid var(--border); }
 tbody td { padding:14px 24px; font-size:14px; border-bottom:1px solid var(--border); }
 tbody tr:last-child td { border-bottom:none; }
-tbody tr:hover td { background:rgba(124,58,237,0.04); }
+tbody tr:hover td { background:rgba(249,115,22,0.04); }
 
 .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
 .badge-success { background:rgba(16,185,129,0.15); color:var(--success); }
@@ -287,7 +281,7 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
 .mini-pill {
   display:inline-flex; align-items:center; padding:5px 10px;
   border-radius:999px; font-size:11px; font-weight:600;
-  background:rgba(124,58,237,0.12); color:var(--accent);
+  background:rgba(249,115,22,0.12); color:var(--accent);
 }
 .quick-link {
   display:flex; align-items:center; justify-content:space-between; gap:12px;
@@ -357,7 +351,6 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
       </svg>
     </div>
     <span class="logo-text">Bovedix</span>
-    <span class="logo-badge">ADMIN</span>
   </div>
   <nav>
     <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard', this)">
