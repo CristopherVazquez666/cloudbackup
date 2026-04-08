@@ -42,7 +42,7 @@ body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text)
 
 /* Sidebar */
 .sidebar {
-  width:220px; min-width:220px; background:var(--bg2); border-right:1px solid var(--border);
+  width:208px; min-width:208px; background:var(--bg2); border-right:1px solid var(--border);
   display:flex; flex-direction:column; padding:0; overflow:hidden;
 }
 .logo {
@@ -82,7 +82,7 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; }
 /* Main */
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .topbar {
-  padding:16px 28px; border-bottom:1px solid var(--border); background:var(--bg2);
+  padding:18px 32px; border-bottom:1px solid var(--border); background:var(--bg2);
   display:flex; align-items:center; justify-content:space-between;
 }
 .topbar-title { font-family:'Syne',sans-serif; font-size:20px; font-weight:700; }
@@ -98,7 +98,7 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; }
   border-radius:8px; cursor:pointer; font-size:13px; font-weight:500;
 }
 
-.content { flex:1; overflow-y:auto; padding:28px; }
+.content { flex:1; overflow-y:auto; padding:30px 32px 40px; }
 
 /* Login screen */
 .login-overlay {
@@ -131,10 +131,10 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; }
 .login-error { color:var(--danger); font-size:13px; margin-top:8px; text-align:center; }
 
 /* Stats grid */
-.stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin-bottom:24px; }
+.stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(220px,1fr)); gap:16px; margin-bottom:24px; }
 .stat-card {
   background:var(--bg2); border:1px solid var(--border); border-radius:16px;
-  padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
+  min-height:138px; padding:20px 24px; display:flex; align-items:center; justify-content:space-between;
   transition:border-color 0.2s;
 }
 .stat-card:hover { border-color:var(--border2); }
@@ -202,6 +202,48 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
 .empty-state svg { width:32px; height:32px; margin:0 auto 12px; opacity:0.4; display:block; }
 
 .loading { padding:40px; text-align:center; color:var(--text3); }
+
+.dashboard-shell {
+  display:grid;
+  grid-template-columns:minmax(0, 1.6fr) minmax(260px, 320px);
+  gap:20px;
+  align-items:start;
+}
+.mini-stack { display:grid; gap:14px; }
+.mini-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+  padding:18px 20px;
+}
+.mini-card-top {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  margin-bottom:10px;
+}
+.mini-title { font-family:'Syne',sans-serif; font-size:15px; font-weight:700; }
+.mini-copy { font-size:13px; color:var(--text2); line-height:1.5; }
+.mini-pill {
+  display:inline-flex; align-items:center; padding:5px 10px;
+  border-radius:999px; font-size:11px; font-weight:600;
+  background:rgba(124,58,237,0.12); color:var(--accent);
+}
+.quick-link {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+  background:var(--bg3); color:var(--text2); cursor:pointer;
+  transition:border-color 0.2s, color 0.2s, transform 0.2s;
+}
+.quick-link:hover { border-color:var(--border2); color:var(--text); transform:translateY(-1px); }
+.quick-link svg { width:16px; height:16px; }
+
+@media (max-width: 1280px) {
+  .dashboard-shell { grid-template-columns:1fr; }
+}
+
+@media (max-width: 920px) {
+  body { height:auto; min-height:100vh; overflow:auto; }
+  .sidebar { width:188px; min-width:188px; }
+  .content { padding:22px; }
+  .topbar { padding:16px 22px; }
+}
 </style>
 </head>
 <body>
@@ -304,17 +346,46 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
     <!-- Dashboard -->
     <div class="page active" id="page-dashboard">
       <div class="stats-grid" id="statsGrid"><div class="loading">Loading...</div></div>
-      <div class="section">
-        <div class="section-header">
-          <div class="section-title" data-i18n="dash.recentAlerts">Recent Alerts</div>
-          <div class="section-actions">
-            <button class="btn btn-ghost" onclick="loadDashboard()">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
-              <span data-i18n="btn.refresh">Refresh</span>
-            </button>
+      <div class="dashboard-shell">
+        <div class="section">
+          <div class="section-header">
+            <div class="section-title" data-i18n="dash.recentAlerts">Recent Alerts</div>
+            <div class="section-actions">
+              <button class="btn btn-ghost" onclick="loadDashboard()">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+                <span data-i18n="btn.refresh">Refresh</span>
+              </button>
+            </div>
+          </div>
+          <div id="recentAlerts"><div class="loading">Loading...</div></div>
+        </div>
+        <div class="mini-stack">
+          <div class="mini-card">
+            <div class="mini-card-top">
+              <div class="mini-title">Platform Shape</div>
+              <span class="mini-pill">Control Plane</span>
+            </div>
+            <div class="mini-copy">Remote backup node, signed access handoff, and agent-ready jobs in one panel.</div>
+          </div>
+          <div class="mini-card">
+            <div class="mini-card-top">
+              <div class="mini-title">Quick Links</div>
+              <span class="mini-pill">Ops</span>
+            </div>
+            <div class="quick-link" onclick="showPage('accounts', document.querySelectorAll('.nav-item')[1])">
+              <span>Manage accounts</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="quick-link" onclick="showPage('jobs', document.querySelectorAll('.nav-item')[3])" style="margin-top:10px;">
+              <span>Review queue</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="quick-link" onclick="showPage('alerts', document.querySelectorAll('.nav-item')[4])" style="margin-top:10px;">
+              <span>Open alerts</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
+            </div>
           </div>
         </div>
-        <div id="recentAlerts"><div class="loading">Loading...</div></div>
       </div>
     </div>
 
@@ -401,7 +472,7 @@ const i18n = {
     'form.cpanelUser': 'cPanel User', 'form.domain': 'Domain', 'form.plan': 'Plan',
     'stat.accounts': 'Total Accounts', 'stat.backups': 'Total Backups',
     'stat.jobs': 'Total Jobs', 'stat.running': 'Queued / Running', 'stat.alerts': 'Unread Alerts',
-    'stat.storage': 'Storage Layer',
+    'stat.storage': 'External Rsync Layer',
   },
   es: {
     'login.subtitle': 'Panel Admin — Acceso Seguro',
@@ -415,7 +486,7 @@ const i18n = {
     'form.cpanelUser': 'Usuario cPanel', 'form.domain': 'Dominio', 'form.plan': 'Plan',
     'stat.accounts': 'Total Cuentas', 'stat.backups': 'Total Respaldos',
     'stat.jobs': 'Total Trabajos', 'stat.running': 'En Cola / Activos', 'stat.alerts': 'Alertas Nuevas',
-    'stat.storage': 'Capa de Storage',
+    'stat.storage': 'Capa Rsync Externa',
   }
 };
 
@@ -571,7 +642,7 @@ async function loadDashboard() {
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.unreadAlerts}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalJobs}</div><div class="stat-label">${t('stat.jobs')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.runningJobs}</div><div class="stat-label">${t('stat.running')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">Hetzner</div><div class="stat-label">${t('stat.storage')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value" style="font-size:26px;">Remote Backup Node</div><div class="stat-label">${t('stat.storage')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div></div>
     `;
 
     const alertBadge = document.getElementById('alertBadge');

@@ -22,7 +22,7 @@
 * { margin:0; padding:0; box-sizing:border-box; }
 body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); display:flex; height:100vh; overflow:hidden; }
 
-.sidebar { width:200px; min-width:200px; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; }
+.sidebar { width:188px; min-width:188px; background:var(--bg2); border-right:1px solid var(--border); display:flex; flex-direction:column; }
 .logo { padding:22px 18px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
 .logo-icon { width:32px; height:32px; background:var(--grad); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; }
 .logo-icon svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.9; }
@@ -42,17 +42,17 @@ nav { flex:1; padding:14px 10px; }
 [data-theme="light"] .toggle-switch::after { transform:translateX(14px); }
 
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.topbar { padding:14px 24px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; }
+.topbar { padding:16px 28px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; }
 .topbar-left { display:flex; align-items:center; gap:12px; }
 .user-pill { display:flex; align-items:center; gap:8px; background:var(--bg3); padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:13px; }
 .user-dot { width:8px; height:8px; background:var(--success); border-radius:50%; }
 .topbar-right { display:flex; align-items:center; gap:8px; }
 .topbar-title { font-family:'Syne',sans-serif; font-size:17px; font-weight:700; }
-.content { flex:1; overflow-y:auto; padding:24px; }
+.content { flex:1; overflow-y:auto; padding:28px 32px 40px; }
 
 /* Stats */
-.stats-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:20px; }
-.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; }
+.stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:24px; }
+.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; min-height:112px; padding:18px 20px; display:flex; align-items:center; justify-content:space-between; }
 .stat-value { font-family:'Syne',sans-serif; font-size:28px; font-weight:800; }
 .stat-label { font-size:12px; color:var(--text2); margin-top:2px; }
 .stat-icon { width:40px; height:40px; border-radius:10px; display:flex; align-items:center; justify-content:center; background:rgba(124,58,237,0.1); color:var(--accent); }
@@ -61,8 +61,8 @@ nav { flex:1; padding:14px 10px; }
 .stat-icon.red { background:rgba(239,68,68,0.1); color:var(--danger); }
 
 /* Restore grid */
-.restore-grid { display:grid; grid-template-columns:repeat(5,1fr); gap:12px; margin-bottom:20px; }
-.restore-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; padding:20px 16px; text-align:center; cursor:pointer; transition:all 0.2s; }
+.restore-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin-bottom:24px; }
+.restore-card { background:var(--bg2); border:1px solid var(--border); border-radius:14px; min-height:136px; padding:20px 16px; text-align:center; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; justify-content:center; }
 .restore-card:hover { border-color:var(--border2); background:var(--bg3); transform:translateY(-2px); }
 .restore-card.active-tab { border-color:var(--primary); background:rgba(124,58,237,0.1); }
 .restore-icon { width:28px; height:28px; margin:0 auto 10px; display:flex; align-items:center; justify-content:center; color:var(--accent); }
@@ -112,6 +112,17 @@ tbody tr:hover td { background:rgba(124,58,237,0.03); }
 .q-stat { text-align:center; padding:14px; background:var(--bg3); border-radius:10px; }
 .q-stat-val { font-family:'Syne',sans-serif; font-size:24px; font-weight:700; }
 .q-stat-label { font-size:11px; color:var(--text2); margin-top:3px; }
+
+@media (max-width: 1240px) {
+  .restore-grid { grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); }
+}
+
+@media (max-width: 960px) {
+  body { height:auto; min-height:100vh; overflow:auto; }
+  .sidebar { width:176px; min-width:176px; }
+  .topbar { padding:16px 20px; }
+  .content { padding:22px; }
+}
 </style>
 </head>
 <body>
@@ -477,7 +488,7 @@ function renderRestoreTable() {
       <td><input type="radio" name="selBackup" value="${backup.id}" ${index === 0 ? 'checked' : ''}></td>
       <td>${fmtDate(backup.created_at)}</td>
       <td><span class="badge badge-info">${h(backup.kind || 'full')}</span></td>
-      <td>${h(backup.remote_path || 'Hetzner Storage')}</td>
+      <td>${h(backup.remote_path || 'Remote backup node')}</td>
       <td>${backup.filesize ? `${(backup.filesize / 1024 / 1024).toFixed(2)} MB` : '—'}</td>
     </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No backups found</div>';
 
