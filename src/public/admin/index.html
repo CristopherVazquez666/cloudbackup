@@ -78,11 +78,8 @@ body {
 .sidebar-toggle svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
 
 nav { flex:1; padding:16px 12px; overflow-y:auto; }
-.nav-section {
-  font-size:10px; font-weight:700; letter-spacing:0.12em; color:var(--text3);
-  padding:12px 8px 6px; text-transform:uppercase; transition:opacity 0.16s ease;
-}
 .nav-item {
+  position:relative;
   display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:12px;
   cursor:pointer; color:var(--text2); font-size:13px; font-weight:500; margin-bottom:4px;
   transition:all 0.2s; border:1px solid transparent;
@@ -108,7 +105,6 @@ body.sidebar-collapsed .sidebar { width:78px; min-width:78px; }
 body.sidebar-collapsed .logo { justify-content:center; padding-inline:0; }
 body.sidebar-collapsed .logo-text,
 body.sidebar-collapsed .logo-badge,
-body.sidebar-collapsed .nav-section,
 body.sidebar-collapsed .nav-item span:not(.nav-badge),
 body.sidebar-collapsed .lang-selector,
 body.sidebar-collapsed .theme-toggle span,
@@ -121,6 +117,30 @@ body.sidebar-collapsed .nav-badge { display:none !important; }
 body.sidebar-collapsed .sidebar-footer { padding:14px 10px; }
 body.sidebar-collapsed .theme-toggle { justify-content:center; padding:10px 0; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); }
+body.sidebar-collapsed .nav-item::after {
+  content:attr(data-tooltip);
+  position:absolute;
+  left:calc(100% + 12px);
+  top:50%;
+  transform:translateY(-50%) translateX(-6px);
+  background:rgba(17,17,24,0.98);
+  border:1px solid var(--border2);
+  color:var(--text);
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  padding:8px 10px;
+  border-radius:10px;
+  opacity:0;
+  pointer-events:none;
+  box-shadow:0 16px 36px rgba(0,0,0,0.35);
+  transition:opacity 0.16s ease, transform 0.16s ease;
+  z-index:12;
+}
+body.sidebar-collapsed .nav-item:hover::after {
+  opacity:1;
+  transform:translateY(-50%) translateX(0);
+}
 
 /* Main */
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
@@ -340,16 +360,18 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
     <span class="logo-badge">ADMIN</span>
   </div>
   <nav>
-    <div class="nav-section" data-i18n="nav.general">General</div>
     <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard', this)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
       <span data-i18n="nav.dashboard">Dashboard</span>
+    </div>
+    <div class="nav-item" data-page="servers" onclick="showPage('servers', this)">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg>
+      <span data-i18n="nav.servers">Servers</span>
     </div>
     <div class="nav-item" data-page="accounts" onclick="showPage('accounts', this)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
       <span data-i18n="nav.accounts">Accounts</span>
     </div>
-    <div class="nav-section" data-i18n="nav.backup">Backups</div>
     <div class="nav-item" data-page="backups" onclick="showPage('backups', this)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
       <span data-i18n="nav.backups">Backups</span>
@@ -358,7 +380,6 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
       <span data-i18n="nav.jobs">Jobs</span>
     </div>
-    <div class="nav-section" data-i18n="nav.system">System</div>
     <div class="nav-item" data-page="alerts" onclick="showPage('alerts', this)">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
       <span data-i18n="nav.alerts">Alerts</span>
@@ -414,27 +435,45 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
               <div class="mini-title">Platform Shape</div>
               <span class="mini-pill">Control Plane</span>
             </div>
-            <div class="mini-copy">Remote backup node, signed access handoff, and agent-ready jobs in one panel.</div>
+            <div class="mini-copy">Server inventory, signed access handoff, and agent-ready jobs in one control plane.</div>
           </div>
           <div class="mini-card">
             <div class="mini-card-top">
               <div class="mini-title">Quick Links</div>
               <span class="mini-pill">Ops</span>
             </div>
-            <div class="quick-link" onclick="showPage('accounts', document.querySelectorAll('.nav-item')[1])">
+            <div class="quick-link" onclick="showPage('servers')">
+              <span>Review servers</span>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
+            </div>
+            <div class="quick-link" onclick="showPage('accounts')" style="margin-top:10px;">
               <span>Manage accounts</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
             </div>
-            <div class="quick-link" onclick="showPage('jobs', document.querySelectorAll('.nav-item')[3])" style="margin-top:10px;">
+            <div class="quick-link" onclick="showPage('jobs')" style="margin-top:10px;">
               <span>Review queue</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
             </div>
-            <div class="quick-link" onclick="showPage('alerts', document.querySelectorAll('.nav-item')[4])" style="margin-top:10px;">
+            <div class="quick-link" onclick="showPage('alerts')" style="margin-top:10px;">
               <span>Open alerts</span>
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
             </div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- Servers -->
+    <div class="page" id="page-servers">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.servers">Servers</div>
+          <button class="btn btn-ghost" onclick="loadServers()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+          </button>
+        </div>
+        <div id="serversSummary" style="padding:20px 24px 0;"></div>
+        <div id="serversTable"><div class="loading">Loading...</div></div>
       </div>
     </div>
 
@@ -454,9 +493,10 @@ tbody tr:hover td { background:rgba(124,58,237,0.04); }
           </div>
         </div>
         <div id="accountsActivateForm" style="display:none; padding:20px 24px; border-bottom:1px solid var(--border); background:var(--bg3);">
-          <div style="display:grid; grid-template-columns:1fr 1fr 1fr auto; gap:12px; align-items:end;">
+          <div style="display:grid; grid-template-columns:repeat(4,minmax(0,1fr)) auto; gap:12px; align-items:end;">
             <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.cpanelUser">cPanel User</label><input id="newUser" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;" placeholder="username"></div>
             <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.domain">Domain</label><input id="newDomain" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;" placeholder="example.com"></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.server">Server</label><select id="newServer" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;"><option value="">Loading...</option></select></div>
             <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.plan">Plan</label><select id="newPlan" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;"><option value="basic">Basic</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
             <button class="btn btn-primary" onclick="activateAccount()" data-i18n="btn.activate">Activate</button>
           </div>
@@ -512,36 +552,55 @@ const i18n = {
   en: {
     'login.subtitle': 'Admin Panel — Secure Access',
     'login.user': 'USERNAME', 'login.pass': 'PASSWORD', 'login.btn': 'Sign In',
-    'nav.general': 'General', 'nav.dashboard': 'Dashboard', 'nav.accounts': 'Accounts',
-    'nav.backup': 'Backups', 'nav.backups': 'Backups', 'nav.jobs': 'Jobs',
-    'nav.system': 'System', 'nav.alerts': 'Alerts',
+    'nav.dashboard': 'Dashboard', 'nav.servers': 'Servers', 'nav.accounts': 'Accounts',
+    'nav.backups': 'Backups', 'nav.jobs': 'Jobs', 'nav.alerts': 'Alerts',
     'theme.toggle': 'Theme', 'topbar.loggedAs': 'Logged in as:', 'topbar.logout': 'Logout',
     'dash.recentAlerts': 'Recent Alerts', 'btn.refresh': 'Refresh',
     'btn.activate': 'Activate Account', 'btn.triggerBackup': 'Queue Backup',
-    'form.cpanelUser': 'cPanel User', 'form.domain': 'Domain', 'form.plan': 'Plan',
+    'form.cpanelUser': 'cPanel User', 'form.domain': 'Domain', 'form.server': 'Server', 'form.plan': 'Plan',
+    'servers.summary': 'Registered servers',
+    'servers.enabled': 'Enabled',
+    'servers.pending': 'Telemetry pending',
+    'servers.disabled': 'Disabled',
+    'servers.secretReady': 'Secret ready',
+    'servers.secretMissing': 'Secret missing',
+    'servers.agentReady': 'Agent-ready',
+    'servers.noJobActivity': 'No job activity yet',
+    'servers.empty': 'No servers configured yet',
+    'servers.loadError': 'Error loading servers',
     'stat.accounts': 'Total Accounts', 'stat.backups': 'Total Backups',
     'stat.jobs': 'Total Jobs', 'stat.running': 'Queued / Running', 'stat.alerts': 'Unread Alerts',
-    'stat.storage': 'External Rsync Layer',
+    'stat.servers': 'Registered Servers',
   },
   es: {
     'login.subtitle': 'Panel Admin — Acceso Seguro',
     'login.user': 'USUARIO', 'login.pass': 'CONTRASEÑA', 'login.btn': 'Ingresar',
-    'nav.general': 'General', 'nav.dashboard': 'Inicio', 'nav.accounts': 'Cuentas',
-    'nav.backup': 'Respaldos', 'nav.backups': 'Respaldos', 'nav.jobs': 'Trabajos',
-    'nav.system': 'Sistema', 'nav.alerts': 'Alertas',
+    'nav.dashboard': 'Inicio', 'nav.servers': 'Servidores', 'nav.accounts': 'Cuentas',
+    'nav.backups': 'Respaldos', 'nav.jobs': 'Trabajos', 'nav.alerts': 'Alertas',
     'theme.toggle': 'Tema', 'topbar.loggedAs': 'Sesión:', 'topbar.logout': 'Salir',
     'dash.recentAlerts': 'Alertas Recientes', 'btn.refresh': 'Actualizar',
     'btn.activate': 'Activar Cuenta', 'btn.triggerBackup': 'Encolar Respaldo',
-    'form.cpanelUser': 'Usuario cPanel', 'form.domain': 'Dominio', 'form.plan': 'Plan',
+    'form.cpanelUser': 'Usuario cPanel', 'form.domain': 'Dominio', 'form.server': 'Servidor', 'form.plan': 'Plan',
+    'servers.summary': 'Servidores registrados',
+    'servers.enabled': 'Activos',
+    'servers.pending': 'Telemetria pendiente',
+    'servers.disabled': 'Deshabilitado',
+    'servers.secretReady': 'Secreto listo',
+    'servers.secretMissing': 'Falta secreto',
+    'servers.agentReady': 'Agente listo',
+    'servers.noJobActivity': 'Sin actividad todavia',
+    'servers.empty': 'Aun no hay servidores configurados',
+    'servers.loadError': 'Error al cargar servidores',
     'stat.accounts': 'Total Cuentas', 'stat.backups': 'Total Respaldos',
     'stat.jobs': 'Total Trabajos', 'stat.running': 'En Cola / Activos', 'stat.alerts': 'Alertas Nuevas',
-    'stat.storage': 'Capa Rsync Externa',
+    'stat.servers': 'Servidores registrados',
   }
 };
 
 let lang = localStorage.getItem('lang') || 'en';
 let currentPage = 'dashboard';
 let currentAdmin = null;
+let serverCache = [];
 const sidebarStorageKey = 'bovedix-admin-sidebar-collapsed';
 
 function t(key) {
@@ -586,6 +645,8 @@ function setLang(l) {
       el.textContent = i18n[lang][key];
     }
   });
+  document.getElementById('pageTitle').textContent = t('nav.' + currentPage);
+  syncNavTooltips();
 }
 
 function toggleTheme() {
@@ -602,6 +663,17 @@ function toggleSidebar() {
   const collapsed = !document.body.classList.contains('sidebar-collapsed');
   applySidebarState(collapsed);
   localStorage.setItem(sidebarStorageKey, String(collapsed));
+}
+
+function syncNavTooltips() {
+  document.querySelectorAll('.nav-item').forEach((item) => {
+    const label = item.querySelector('span[data-i18n], span:not(.nav-badge)')?.textContent?.trim();
+    if (label) {
+      item.setAttribute('data-tooltip', label);
+    } else {
+      item.removeAttribute('data-tooltip');
+    }
+  });
 }
 
 function updateClock() {
@@ -679,6 +751,7 @@ function showPage(page, el) {
   currentPage = page;
   document.getElementById('pageTitle').textContent = t('nav.' + page);
   if (page === 'dashboard') loadDashboard();
+  if (page === 'servers') loadServers();
   if (page === 'accounts') loadAccounts();
   if (page === 'backups') loadBackups();
   if (page === 'jobs') loadJobs();
@@ -698,12 +771,12 @@ async function loadDashboard() {
   try {
     const stats = await api('/api/jobs/stats/overview');
     document.getElementById('statsGrid').innerHTML = `
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalServers}</div><div class="stat-label">${t('stat.servers')}</div><div class="stat-sub">${stats.enabledServers} ${t('servers.enabled').toLowerCase()}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalAccounts}</div><div class="stat-label">${t('stat.accounts')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.unreadAlerts}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalJobs}</div><div class="stat-label">${t('stat.jobs')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.runningJobs}</div><div class="stat-label">${t('stat.running')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value" style="font-size:22px;line-height:1.08;">Remote Backup Node</div><div class="stat-label">${t('stat.storage')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" y1="6" x2="6.01" y2="6"/><line x1="6" y1="18" x2="6.01" y2="18"/></svg></div></div>
     `;
 
     const alertBadge = document.getElementById('alertBadge');
@@ -729,6 +802,61 @@ async function loadDashboard() {
     if (renderUnauthorized(error)) return;
     document.getElementById('statsGrid').innerHTML = '<div class="loading">Error loading stats</div>';
   }
+}
+
+async function loadServers() {
+  try {
+    const servers = await api('/api/servers');
+    serverCache = servers;
+
+    const totalAccounts = servers.reduce((sum, server) => sum + (server.account_count || 0), 0);
+    const queuedJobs = servers.reduce((sum, server) => sum + (server.queued_jobs || 0), 0);
+    const enabled = servers.filter((server) => server.enabled).length;
+
+    document.getElementById('serversSummary').innerHTML = `
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${servers.length}</div><div class="stat-label">${t('servers.summary')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${enabled}</div><div class="stat-label">${t('servers.enabled')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${totalAccounts}</div><div class="stat-label">${t('stat.accounts')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${queuedJobs}</div><div class="stat-label">${t('stat.running')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></div></div>
+      </div>
+    `;
+
+    document.getElementById('serversTable').innerHTML = servers.length ? `
+      <table><thead><tr><th>Name</th><th>Slug</th><th>Host / IP</th><th>Accounts</th><th>Backups</th><th>Queue</th><th>Status</th><th>Telemetry</th></tr></thead>
+      <tbody>${servers.map((server) => `<tr>
+        <td><strong>${h(server.name)}</strong><div style="font-size:12px;color:var(--text3);">${server.shared_secret_configured ? t('servers.secretReady') : t('servers.secretMissing')}</div></td>
+        <td><span style="font-size:12px;color:var(--text3);font-family:monospace;">${h(server.slug)}</span></td>
+        <td>${h(server.cpanel_host || 'Pending host')}</td>
+        <td>${server.account_count}</td>
+        <td>${server.backup_count}</td>
+        <td>${server.queued_jobs}</td>
+        <td><span class="badge badge-${server.enabled ? 'success' : 'danger'}">${server.enabled ? t('servers.enabled') : t('servers.disabled')}</span></td>
+        <td><div style="font-size:13px;">${server.telemetry_status === 'agent-ready' ? t('servers.agentReady') : t('servers.pending')}</div><div style="font-size:12px;color:var(--text3);">${server.latest_job_at ? fmtDate(server.latest_job_at) : t('servers.noJobActivity')}</div></td>
+      </tr>`).join('')}</tbody></table>
+    ` : `<div class="empty-state">${t('servers.empty')}</div>`;
+
+    renderServerOptions();
+  } catch (error) {
+    if (renderUnauthorized(error)) return;
+    document.getElementById('serversSummary').innerHTML = '';
+    document.getElementById('serversTable').innerHTML = `<div class="loading">${t('servers.loadError')}</div>`;
+  }
+}
+
+function renderServerOptions() {
+  const select = document.getElementById('newServer');
+  if (!select) return;
+
+  if (!serverCache.length) {
+    select.innerHTML = '<option value="">No servers</option>';
+    return;
+  }
+
+  select.innerHTML = serverCache
+    .filter((server) => server.enabled)
+    .map((server) => `<option value="${h(server.slug)}">${h(server.name)}${server.cpanel_host ? ` — ${h(server.cpanel_host)}` : ''}</option>`)
+    .join('');
 }
 
 async function loadAccounts() {
@@ -813,11 +941,15 @@ async function loadAlerts() {
 function showActivateForm() {
   const form = document.getElementById('accountsActivateForm');
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
+  if (form.style.display === 'block' && !serverCache.length) {
+    loadServers();
+  }
 }
 
 async function activateAccount() {
   const cpanel_user = document.getElementById('newUser').value.trim();
   const domain = document.getElementById('newDomain').value.trim();
+  const server_slug = document.getElementById('newServer').value;
   const plan = document.getElementById('newPlan').value;
   const msg = document.getElementById('activateMsg');
 
@@ -833,7 +965,7 @@ async function activateAccount() {
   try {
     const result = await api('/api/accounts/activate', {
       method: 'POST',
-      body: JSON.stringify({ cpanel_user, domain, plan })
+      body: JSON.stringify({ cpanel_user, domain, plan, server_slug })
     });
 
     msg.textContent = result.success ? 'Account activated successfully' : (result.error || 'Error');
@@ -872,6 +1004,7 @@ async function bootstrap() {
       currentAdmin = session.user.username || 'admin';
       document.getElementById('adminName').textContent = currentAdmin;
       hideLogin();
+      loadServers();
       loadDashboard();
       return;
     }
@@ -891,6 +1024,7 @@ const savedTheme = localStorage.getItem('theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 applySidebarState(localStorage.getItem(sidebarStorageKey) === 'true');
 setLang(lang);
+syncNavTooltips();
 setInterval(updateClock, 1000);
 updateClock();
 bootstrap();

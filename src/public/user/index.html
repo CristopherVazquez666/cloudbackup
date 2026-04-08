@@ -48,6 +48,7 @@ body {
 .sidebar-toggle svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
 nav { flex:1; padding:14px 10px; overflow-y:auto; }
 .nav-item {
+  position:relative;
   display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:12px; cursor:pointer;
   color:var(--text2); font-size:13px; font-weight:500; margin-bottom:4px; transition:all 0.2s;
   border:1px solid transparent;
@@ -80,6 +81,30 @@ body.sidebar-collapsed .nav-item { justify-content:center; padding-inline:0; }
 body.sidebar-collapsed .theme-toggle { justify-content:center; padding:10px 0; }
 body.sidebar-collapsed .sidebar-footer { padding:14px 10px; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); }
+body.sidebar-collapsed .nav-item::after {
+  content:attr(data-tooltip);
+  position:absolute;
+  left:calc(100% + 12px);
+  top:50%;
+  transform:translateY(-50%) translateX(-6px);
+  background:rgba(17,17,24,0.98);
+  border:1px solid var(--border2);
+  color:var(--text);
+  font-size:12px;
+  font-weight:600;
+  white-space:nowrap;
+  padding:8px 10px;
+  border-radius:10px;
+  opacity:0;
+  pointer-events:none;
+  box-shadow:0 16px 36px rgba(0,0,0,0.35);
+  transition:opacity 0.16s ease, transform 0.16s ease;
+  z-index:12;
+}
+body.sidebar-collapsed .nav-item:hover::after {
+  opacity:1;
+  transform:translateY(-50%) translateX(0);
+}
 
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .topbar { padding:17px 28px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; }
@@ -349,6 +374,7 @@ let accountInfo = null;
 let backups = [];
 let selectedBackup = null;
 let currentTab = 'full';
+let currentPage = 'home';
 const sidebarStorageKey = 'bovedix-user-sidebar-collapsed';
 
 function t(key) {
@@ -387,6 +413,8 @@ function setLang(l) {
       el.textContent = i18n[lang][key];
     }
   });
+  document.getElementById('pageTitle').textContent = t('nav.' + currentPage);
+  syncNavTooltips();
 }
 
 function toggleTheme() {
@@ -403,6 +431,17 @@ function toggleSidebar() {
   const collapsed = !document.body.classList.contains('sidebar-collapsed');
   applySidebarState(collapsed);
   localStorage.setItem(sidebarStorageKey, String(collapsed));
+}
+
+function syncNavTooltips() {
+  document.querySelectorAll('.nav-item').forEach((item) => {
+    const label = item.querySelector('span[data-i18n], span')?.textContent?.trim();
+    if (label) {
+      item.setAttribute('data-tooltip', label);
+    } else {
+      item.removeAttribute('data-tooltip');
+    }
+  });
 }
 
 async function api(path, opts = {}) {
@@ -484,6 +523,7 @@ function showPage(page, el) {
   document.getElementById('page-' + page).classList.add('active');
   const target = el || document.querySelector(`.nav-item[data-page="${page}"]`);
   if (target) target.classList.add('active');
+  currentPage = page;
   document.getElementById('pageTitle').textContent = t('nav.' + page);
   if (page === 'home') loadUserStats();
   if (page === 'restore' || page === 'downloads') loadUserBackups();
@@ -687,6 +727,7 @@ const savedTheme = localStorage.getItem('theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
 applySidebarState(localStorage.getItem(sidebarStorageKey) === 'true');
 setLang(lang);
+syncNavTooltips();
 bootstrap();
 </script>
 </body>

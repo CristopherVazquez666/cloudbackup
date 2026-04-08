@@ -20,6 +20,8 @@ function findAccountByCpanelUser(db, cpanelUser) {
 
 router.get('/stats/overview', adminMiddleware, (req, res) => {
   const db = getDb();
+  const totalServers = db.prepare('SELECT COUNT(*) AS count FROM servers').get();
+  const enabledServers = db.prepare('SELECT COUNT(*) AS count FROM servers WHERE enabled = 1').get();
   const totalAccounts = db.prepare('SELECT COUNT(*) AS count FROM accounts').get();
   const totalBackups = db.prepare('SELECT COUNT(*) AS count FROM backups').get();
   const totalJobs = db.prepare('SELECT COUNT(*) AS count FROM jobs').get();
@@ -40,6 +42,8 @@ router.get('/stats/overview', adminMiddleware, (req, res) => {
   `).all();
 
   return res.json({
+    totalServers: totalServers.count,
+    enabledServers: enabledServers.count,
     totalAccounts: totalAccounts.count,
     totalBackups: totalBackups.count,
     totalJobs: totalJobs.count,

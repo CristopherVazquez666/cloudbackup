@@ -21,6 +21,7 @@ app.use('/admin', express.static(path.join(__dirname, 'public/admin')));
 app.use('/user', express.static(path.join(__dirname, 'public/user')));
 
 app.use('/api/auth', require('./api/routes/auth'));
+app.use('/api/servers', require('./api/routes/servers'));
 app.use('/api/accounts', require('./api/routes/accounts'));
 app.use('/api/backups', require('./api/routes/backups'));
 app.use('/api/jobs', require('./api/routes/jobs'));
