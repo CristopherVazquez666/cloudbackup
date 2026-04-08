@@ -46,7 +46,7 @@ body {
 /* Sidebar */
 .sidebar {
   width:214px; min-width:214px; background:var(--bg2); border-right:1px solid var(--border);
-  display:flex; flex-direction:column; padding:0; overflow:hidden; position:relative;
+  display:flex; flex-direction:column; padding:0; overflow:visible; position:relative;
   transition:width 0.26s ease, min-width 0.26s ease;
 }
 .logo {
@@ -72,7 +72,7 @@ body {
 .sidebar-toggle:hover { color:var(--text); border-color:var(--accent); }
 .sidebar-toggle svg { width:14px; height:14px; stroke:currentColor; fill:none; stroke-width:2; }
 
-nav { flex:1; padding:16px 12px; overflow-y:auto; }
+nav { flex:1; padding:16px 12px; overflow-y:auto; overflow-x:visible; }
 .nav-item {
   position:relative;
   display:flex; align-items:center; gap:10px; padding:11px 12px; border-radius:12px;
@@ -81,17 +81,18 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; }
 }
 .nav-item:hover { background:var(--bg3); color:var(--text); }
 .nav-item.active { background:rgba(249,115,22,0.14); color:var(--accent); border-color:var(--border2); }
-.nav-item svg { width:17px; height:17px; flex-shrink:0; }
+.nav-item svg { width:17px; height:17px; flex-shrink:0; display:block; }
 .nav-item span { transition:opacity 0.16s ease, transform 0.16s ease; }
 .nav-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:10px; padding:2px 6px; border-radius:20px; font-weight:600; }
 
-.sidebar-footer { padding:16px 12px; border-top:1px solid var(--border); }
+.sidebar-footer { padding:16px 12px; border-top:1px solid var(--border); display:grid; gap:10px; }
 .theme-toggle {
   display:flex; align-items:center; gap:8px; padding:8px 12px;
   background:var(--bg3); border-radius:10px; cursor:pointer; font-size:12px; color:var(--text2);
   border:1px solid var(--border);
 }
 .theme-toggle span { transition:opacity 0.16s ease, transform 0.16s ease; }
+.theme-toggle svg { display:block; flex-shrink:0; }
 .toggle-switch { margin-left:auto; width:36px; height:20px; background:var(--bg); border-radius:10px; position:relative; border:1px solid var(--border2); cursor:pointer; }
 .toggle-switch::after { content:''; position:absolute; width:14px; height:14px; background:var(--accent); border-radius:50%; top:2px; left:2px; transition:transform 0.2s; }
 [data-theme="light"] .toggle-switch::after { transform:translateX(16px); }
@@ -105,12 +106,16 @@ body.sidebar-collapsed .theme-toggle span,
 body.sidebar-collapsed .toggle-switch {
   opacity:0; pointer-events:none; transform:translateX(-8px); width:0; overflow:hidden;
 }
-body.sidebar-collapsed .lang-selector { margin:0 !important; padding:0; border-width:0; min-height:0; }
-body.sidebar-collapsed .nav-item { justify-content:center; padding-inline:0; }
+body.sidebar-collapsed nav { padding-inline:0; }
+body.sidebar-collapsed .lang-selector { display:none; }
+body.sidebar-collapsed .nav-item {
+  justify-content:center; padding:0; width:52px; height:52px; margin-inline:auto; border-radius:16px;
+}
 body.sidebar-collapsed .nav-badge { display:none !important; }
-body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; }
-body.sidebar-collapsed .theme-toggle { justify-content:center; padding:10px; width:48px; margin:0 auto; gap:0; }
+body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; display:flex; justify-content:center; }
+body.sidebar-collapsed .theme-toggle { justify-content:center; align-items:center; padding:0; width:52px; height:52px; margin:0 auto; gap:0; border-radius:16px; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); }
+body.sidebar-collapsed .theme-toggle svg { width:18px; height:18px; }
 body.sidebar-collapsed .nav-item::after {
   content:attr(data-tooltip);
   position:absolute;
@@ -663,8 +668,10 @@ function syncNavTooltips() {
     const label = item.querySelector('span[data-i18n], span:not(.nav-badge)')?.textContent?.trim();
     if (label) {
       item.setAttribute('data-tooltip', label);
+      item.setAttribute('title', label);
     } else {
       item.removeAttribute('data-tooltip');
+      item.removeAttribute('title');
     }
   });
 }
