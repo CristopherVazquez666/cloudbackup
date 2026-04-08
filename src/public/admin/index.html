@@ -81,17 +81,12 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; overflow-x:visible; }
 }
 .nav-item:hover { background:var(--bg3); color:var(--text); }
 .nav-item.active { background:rgba(249,115,22,0.14); color:var(--accent); border-color:var(--border2); }
-.nav-item svg { width:17px; height:17px; flex-shrink:0; display:block; }
+.nav-icon { width:20px; height:20px; flex:0 0 20px; display:grid; place-items:center; }
+.nav-item svg { width:18px; height:18px; flex-shrink:0; display:block; margin:0; }
 .nav-item span { transition:opacity 0.16s ease, transform 0.16s ease; }
 .nav-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:10px; padding:2px 6px; border-radius:20px; font-weight:600; }
 
 .sidebar-footer { padding:12px; border-top:1px solid var(--border); display:grid; gap:8px; }
-.lang-toggle-compact {
-  display:none; align-items:center; justify-content:center; width:52px; height:52px;
-  border-radius:16px; border:1px solid var(--border); background:var(--bg3); color:var(--text2);
-  cursor:pointer;
-}
-.lang-toggle-compact svg { width:18px; height:18px; stroke:currentColor; fill:none; stroke-width:1.9; }
 .theme-toggle {
   display:flex; align-items:center; gap:10px; min-height:44px; padding:6px 12px;
   background:var(--bg3); border-radius:14px; cursor:pointer; font-size:12px; color:var(--text2);
@@ -118,12 +113,11 @@ body.sidebar-collapsed .nav-item {
   display:grid; place-items:center; padding:0; width:52px; height:52px; margin-inline:auto; border-radius:16px;
 }
 body.sidebar-collapsed .nav-badge { display:none !important; }
-body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; display:grid; justify-items:center; gap:8px; }
-body.sidebar-collapsed .lang-toggle-compact { display:flex; }
+body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; display:flex; justify-content:center; }
 body.sidebar-collapsed .theme-toggle { display:grid; place-items:center; padding:0; width:52px; height:52px; margin:0 auto; gap:0; border-radius:16px; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); right:-14px; }
 body.sidebar-collapsed .theme-toggle svg { width:18px; height:18px; }
-body.sidebar-collapsed .nav-item svg { margin:0 auto; }
+body.sidebar-collapsed .nav-icon { width:20px; height:20px; }
 .nav-tooltip {
   position:fixed;
   top:0;
@@ -362,27 +356,27 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
   </div>
   <nav>
     <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard', this)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
       <span data-i18n="nav.dashboard">Dashboard</span>
     </div>
     <div class="nav-item" data-page="servers" onclick="showPage('servers', this)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg>
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg></span>
       <span data-i18n="nav.servers">Servers</span>
     </div>
     <div class="nav-item" data-page="accounts" onclick="showPage('accounts', this)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
       <span data-i18n="nav.accounts">Accounts</span>
     </div>
     <div class="nav-item" data-page="backups" onclick="showPage('backups', this)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg>
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
       <span data-i18n="nav.backups">Backups</span>
     </div>
     <div class="nav-item" data-page="jobs" onclick="showPage('jobs', this)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></span>
       <span data-i18n="nav.jobs">Jobs</span>
     </div>
     <div class="nav-item" data-page="alerts" onclick="showPage('alerts', this)">
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
       <span data-i18n="nav.alerts">Alerts</span>
       <span class="nav-badge" id="alertBadge" style="display:none">0</span>
     </div>
@@ -392,16 +386,6 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
       <button class="lang-btn active" onclick="setLang('en')">EN</button>
       <button class="lang-btn" onclick="setLang('es')">ES</button>
     </div>
-    <button class="lang-toggle-compact" type="button" onclick="toggleLang()" aria-label="Cambiar idioma">
-      <svg viewBox="0 0 24 24">
-        <path d="M4 5h9"></path>
-        <path d="M8.5 5v2c0 4-2.2 6.8-5.5 8"></path>
-        <path d="M5 11c1.2 1.8 3 3.4 5.5 4.5"></path>
-        <path d="M14 15h6"></path>
-        <path d="M17 12l-3 7"></path>
-        <path d="M17 12l3 7"></path>
-      </svg>
-    </button>
     <div class="theme-toggle" onclick="toggleTheme()">
       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
       <span data-i18n="theme.toggle">Theme</span>
@@ -667,10 +651,6 @@ function toggleTheme() {
   const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
   document.documentElement.setAttribute('data-theme', nextTheme);
   localStorage.setItem('theme', nextTheme);
-}
-
-function toggleLang() {
-  setLang(lang === 'en' ? 'es' : 'en');
 }
 
 function applySidebarState(collapsed) {
