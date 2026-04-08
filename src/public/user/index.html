@@ -226,7 +226,7 @@ tbody tr:hover td { background:rgba(124,58,237,0.03); }
       <div class="section">
         <div class="section-header">
           <div class="section-title" data-i18n="nav.alerts">Alerts</div>
-          <button class="btn btn-danger" onclick="loadUserAlerts()" data-i18n="btn.clearAlerts">✕ Clear Alerts</button>
+          <button class="btn btn-danger" onclick="markAlertsRead()" data-i18n="btn.clearAlerts">✕ Clear Alerts</button>
         </div>
         <div id="userAlertsTable"><div class="loading">Loading...</div></div>
       </div>
@@ -260,9 +260,9 @@ const i18n = {
     'home.createBackup':'Create Backup On Demand',
     'restore.full':'Full Backups','restore.homedir':'Home Directory',
     'restore.db':'Databases','restore.mail':'Email Accounts','restore.ssl':'Certificates',
-    'btn.restore':'Restore','btn.download':'Download','btn.clearAlerts':'Clear Alerts',
+    'btn.restore':'Queue Restore','btn.download':'Queue Download','btn.clearAlerts':'Mark All As Read',
     'queue.pending':'Pending','queue.running':'Processing','queue.done':'Completed','queue.failed':'Failed/Canceled',
-    'stat.backups':'Total Backups','stat.alerts':'New Alerts','stat.usage':'Account Usage',
+    'stat.backups':'Total Backups','stat.alerts':'Unread Alerts','stat.usage':'Plan',
   },
   es: {
     'nav.home':'Inicio','nav.restore':'Restaurar y Descargar','nav.downloads':'Descargas',
@@ -271,180 +271,344 @@ const i18n = {
     'home.createBackup':'Crear Respaldo Ahora',
     'restore.full':'Respaldo Completo','restore.homedir':'Directorio de Inicio',
     'restore.db':'Bases de Datos','restore.mail':'Cuentas de Correo','restore.ssl':'Certificados',
-    'btn.restore':'Restaurar','btn.download':'Descargar','btn.clearAlerts':'Limpiar Alertas',
+    'btn.restore':'Encolar Restauracion','btn.download':'Encolar Descarga','btn.clearAlerts':'Marcar Todo Como Leido',
     'queue.pending':'Pendiente','queue.running':'Procesando','queue.done':'Completado','queue.failed':'Fallido/Cancelado',
-    'stat.backups':'Total Respaldos','stat.alerts':'Alertas Nuevas','stat.usage':'Uso de Cuenta',
+    'stat.backups':'Total Respaldos','stat.alerts':'Alertas Nuevas','stat.usage':'Plan',
   }
 };
 
 let lang = localStorage.getItem('lang') || 'en';
 let cpanel_user = null;
-let token = null;
+let accountInfo = null;
 let backups = [];
 let selectedBackup = null;
 let currentTab = 'full';
 
-function t(key) { return i18n[lang][key] || key; }
+function t(key) {
+  return i18n[lang][key] || key;
+}
+
+function h(value) {
+  return String(value ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
+function fmtDate(value) {
+  if (!value) return '—';
+  const date = new Date(value);
+  return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
+}
+
+function badgeClass(level) {
+  if (level === 'completed' || level === 'active' || level === 'ready') return 'success';
+  if (level === 'running' || level === 'queued' || level === 'info') return 'info';
+  if (level === 'warning') return 'warning';
+  return 'danger';
+}
 
 function setLang(l) {
-  lang = l; localStorage.setItem('lang', l);
-  document.querySelectorAll('.lang-btn').forEach(b => b.classList.toggle('active', b.textContent === l.toUpperCase()));
-  document.querySelectorAll('[data-i18n]').forEach(el => { const k = el.getAttribute('data-i18n'); if(i18n[lang][k]) el.textContent = i18n[lang][k]; });
+  lang = l;
+  localStorage.setItem('lang', l);
+  document.querySelectorAll('.lang-btn').forEach((b) => b.classList.toggle('active', b.textContent === l.toUpperCase()));
+  document.querySelectorAll('[data-i18n]').forEach((el) => {
+    const key = el.getAttribute('data-i18n');
+    if (i18n[lang][key]) {
+      el.textContent = i18n[lang][key];
+    }
+  });
 }
 
 function toggleTheme() {
-  const th = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
-  document.documentElement.setAttribute('data-theme', th); localStorage.setItem('theme', th);
+  const nextTheme = document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark';
+  document.documentElement.setAttribute('data-theme', nextTheme);
+  localStorage.setItem('theme', nextTheme);
 }
 
-function getToken() {
+async function api(path, opts = {}) {
+  const response = await fetch(path, {
+    credentials: 'same-origin',
+    ...opts,
+    headers: {
+      'Content-Type': 'application/json',
+      ...(opts.headers || {})
+    }
+  });
+
+  const text = await response.text();
+  const data = text ? JSON.parse(text) : null;
+
+  if (!response.ok) {
+    const error = new Error(data?.error || 'Request failed');
+    error.status = response.status;
+    error.data = data;
+    throw error;
+  }
+
+  return data;
+}
+
+function getSsoPayloadFromUrl() {
   const params = new URLSearchParams(window.location.search);
-  return params.get('token') || localStorage.getItem('bvx_user_token');
+  const server = params.get('server_slug') || params.get('server');
+  const cpanel = params.get('cpanel_user');
+  const domain = params.get('domain');
+  const timestamp = params.get('timestamp');
+  const nonce = params.get('nonce');
+  const signature = params.get('signature');
+
+  if (!server || !cpanel || !domain || !timestamp || !nonce || !signature) {
+    return null;
+  }
+
+  return {
+    server_slug: server,
+    cpanel_user: cpanel,
+    domain,
+    timestamp,
+    nonce,
+    signature
+  };
 }
 
-function api(path, opts={}) {
-  return fetch(path, { ...opts, headers: { 'Content-Type':'application/json', 'Authorization':`Bearer ${token}`, ...(opts.headers||{}) } }).then(r => r.json());
+async function exchangeSsoIfPresent() {
+  const payload = getSsoPayloadFromUrl();
+
+  if (!payload) {
+    return;
+  }
+
+  await api('/api/auth/sso/exchange', {
+    method: 'POST',
+    body: JSON.stringify(payload)
+  });
+
+  window.history.replaceState({}, document.title, window.location.pathname);
+}
+
+function renderAuthError(message) {
+  document.getElementById('userDisplay').textContent = 'SSO required';
+  document.querySelector('.content').innerHTML = `
+    <div class="section">
+      <div class="section-header">
+        <div class="section-title">Access Required</div>
+      </div>
+      <div class="empty-state">${h(message)}</div>
+    </div>
+  `;
 }
 
 function showPage(page, el) {
-  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.querySelectorAll('.page').forEach((p) => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach((n) => n.classList.remove('active'));
   document.getElementById('page-' + page).classList.add('active');
-  if(el) el.classList.add('active');
+  if (el) el.classList.add('active');
   document.getElementById('pageTitle').textContent = t('nav.' + page);
-  if(page === 'home') loadUserStats();
-  if(page === 'restore') loadUserBackups();
-  if(page === 'downloads') loadDownloads();
-  if(page === 'alerts') loadUserAlerts();
-  if(page === 'queue') loadUserJobs();
+  if (page === 'home') loadUserStats();
+  if (page === 'restore' || page === 'downloads') loadUserBackups();
+  if (page === 'alerts') loadUserAlerts();
+  if (page === 'queue') loadUserJobs();
 }
 
 function setRestoreTab(tab) {
   currentTab = tab;
-  document.querySelectorAll('.restore-tab-btn').forEach(b => {
-    b.style.borderBottomColor = 'transparent'; b.style.color = 'var(--text2)';
+  document.querySelectorAll('.restore-tab-btn').forEach((button) => {
+    button.style.borderBottomColor = 'transparent';
+    button.style.color = 'var(--text2)';
   });
+
   const active = document.getElementById('tab-' + tab);
-  if(active) { active.style.borderBottomColor = 'var(--primary)'; active.style.color = 'var(--accent)'; }
+  if (active) {
+    active.style.borderBottomColor = 'var(--primary)';
+    active.style.color = 'var(--accent)';
+  }
+
   renderRestoreTable();
 }
 
 async function loadUserStats() {
-  if(!cpanel_user) return;
+  if (!cpanel_user) return;
+
   try {
-    const s = await api(`/api/accounts/${cpanel_user}/status`);
-    const alerts = await api(`/api/jobs/alerts/${cpanel_user}`);
-    const unread = alerts.filter ? alerts.filter(a => !a.read).length : 0;
+    const stats = await api('/api/accounts/me/status');
+    const alerts = await api('/api/jobs/alerts/me');
+    const unread = Array.isArray(alerts) ? alerts.filter((alert) => !alert.read).length : 0;
+    accountInfo = stats.account;
     document.getElementById('userStats').innerHTML = `
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
       <div class="stat-card"><div class="stat-info"><div class="stat-value">${unread}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${s.account?.plan||'basic'}</div><div class="stat-label">Plan</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+      <div class="stat-card"><div class="stat-info"><div class="stat-value">${h(stats.account?.plan || 'basic')}</div><div class="stat-label">${t('stat.usage')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
     `;
-  } catch { document.getElementById('userStats').innerHTML = '<div class="loading">Error loading stats</div>'; }
+  } catch (error) {
+    document.getElementById('userStats').innerHTML = `<div class="loading">${h(error.message || 'Error loading stats')}</div>`;
+  }
 }
 
 async function loadUserBackups() {
-  if(!cpanel_user) return;
+  if (!cpanel_user) return;
+
   try {
-    backups = await api(`/api/backups/${cpanel_user}`);
+    backups = await api('/api/backups/me');
     renderRestoreTable();
     renderDownloads();
-  } catch { document.getElementById('restoreTable').innerHTML = '<div class="loading">Error</div>'; }
+  } catch (error) {
+    document.getElementById('restoreTable').innerHTML = `<div class="loading">${h(error.message || 'Error')}</div>`;
+  }
 }
 
 function renderRestoreTable() {
-  const filtered = backups.filter(b => currentTab === 'full' ? true : b.type === currentTab);
+  const filtered = backups.filter((backup) => currentTab === 'full' ? true : (backup.kind || 'full') === currentTab);
+
   document.getElementById('restoreTable').innerHTML = filtered.length ? `
-    <table><thead><tr><th><input type="checkbox"></th><th>Created</th><th>Type</th><th>Destination</th><th>Size</th></tr></thead>
-    <tbody>${filtered.map((b,i) => `<tr onclick="selectBackup('${b.id}',this)" style="cursor:pointer;">
-      <td><input type="radio" name="selBackup" value="${b.id}" ${i===0?'checked':''}></td>
-      <td>${new Date(b.created_at).toLocaleString()}</td>
-      <td><span class="badge badge-info">${b.type}</span></td>
-      <td>Hetzner Storage</td>
-      <td>${b.filesize?(b.filesize/1024/1024).toFixed(2)+' MB':'—'}</td>
+    <table><thead><tr><th></th><th>Created</th><th>Type</th><th>Destination</th><th>Size</th></tr></thead>
+    <tbody>${filtered.map((backup, index) => `<tr onclick="selectBackup('${backup.id}',this)" style="cursor:pointer;${index === 0 ? 'background:rgba(124,58,237,0.08);' : ''}">
+      <td><input type="radio" name="selBackup" value="${backup.id}" ${index === 0 ? 'checked' : ''}></td>
+      <td>${fmtDate(backup.created_at)}</td>
+      <td><span class="badge badge-info">${h(backup.kind || 'full')}</span></td>
+      <td>${h(backup.remote_path || 'Hetzner Storage')}</td>
+      <td>${backup.filesize ? `${(backup.filesize / 1024 / 1024).toFixed(2)} MB` : '—'}</td>
     </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No backups found</div>';
-  if(filtered.length) selectedBackup = filtered[0].id;
+
+  selectedBackup = filtered.length ? filtered[0].id : null;
 }
 
 function renderDownloads() {
   document.getElementById('downloadsTable').innerHTML = backups.length ? `
-    <table><thead><tr><th>Created</th><th>Type</th><th>Account</th><th>Size</th><th>Notes</th><th></th></tr></thead>
-    <tbody>${backups.map(b => `<tr>
-      <td>${new Date(b.created_at).toLocaleString()}</td>
-      <td><span class="badge badge-info">${b.type}</span></td>
-      <td>${cpanel_user}<br><span style="color:var(--text3);font-size:11px;">ID: ${b.id.substring(0,8)}</span></td>
-      <td>${b.filesize?(b.filesize/1024/1024).toFixed(2)+' MB':'—'}</td>
-      <td><span style="color:var(--text3);font-size:12px;">—</span></td>
-      <td><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;">⬇ Download</button></td>
+    <table><thead><tr><th>Created</th><th>Type</th><th>Account</th><th>Size</th><th>Path</th><th></th></tr></thead>
+    <tbody>${backups.map((backup) => `<tr>
+      <td>${fmtDate(backup.created_at)}</td>
+      <td><span class="badge badge-info">${h(backup.kind || 'full')}</span></td>
+      <td>${h(cpanel_user)}<br><span style="color:var(--text3);font-size:11px;">ID: ${h(backup.id.substring(0, 8))}</span></td>
+      <td>${backup.filesize ? `${(backup.filesize / 1024 / 1024).toFixed(2)} MB` : '—'}</td>
+      <td><span style="color:var(--text3);font-size:12px;">${h(backup.remote_path || 'Pending path')}</span></td>
+      <td><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;" onclick="doDownload('${backup.id}')">⬇ Download</button></td>
     </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No downloads</div>';
 }
 
 function selectBackup(id, row) {
   selectedBackup = id;
-  document.querySelectorAll('#restoreTable tbody tr').forEach(r => r.style.background = '');
+  document.querySelectorAll('#restoreTable tbody tr').forEach((tr) => { tr.style.background = ''; });
   row.style.background = 'rgba(124,58,237,0.08)';
+  const radio = row.querySelector('input[type="radio"]');
+  if (radio) {
+    radio.checked = true;
+  }
 }
 
-function doRestore() { if(selectedBackup) alert('Restore initiated for backup: ' + selectedBackup); }
-function doDownload() { if(selectedBackup) alert('Download initiated for backup: ' + selectedBackup); }
+async function doRestore() {
+  if (!selectedBackup) return;
+
+  try {
+    await api(`/api/backups/${selectedBackup}/restore`, { method: 'POST' });
+    showPage('queue', null);
+    await loadUserJobs();
+  } catch (error) {
+    alert(error.message || 'Could not queue restore');
+  }
+}
+
+async function doDownload(backupId = selectedBackup) {
+  if (!backupId) return;
+
+  try {
+    await api(`/api/backups/${backupId}/download`, { method: 'POST' });
+    showPage('queue', null);
+    await loadUserJobs();
+  } catch (error) {
+    alert(error.message || 'Could not queue download');
+  }
+}
 
 async function loadUserAlerts() {
-  if(!cpanel_user) return;
+  if (!cpanel_user) return;
+
   try {
-    const alerts = await api(`/api/jobs/alerts/${cpanel_user}`);
-    document.getElementById('userAlertsTable').innerHTML = alerts.length ? alerts.map(a => `
+    const alerts = await api('/api/jobs/alerts/me');
+    document.getElementById('userAlertsTable').innerHTML = alerts.length ? alerts.map((alert) => `
       <div class="alert-item">
-        <div class="alert-dot" style="background:${a.level==='warning'?'var(--warning)':a.level==='info'?'var(--info)':'var(--danger)'}"></div>
-        <div><div class="alert-title">${a.title}</div><div class="alert-time">${new Date(a.created_at).toLocaleString()}</div><div class="alert-msg">${a.message||''}</div></div>
-        <span class="badge badge-${a.level==='info'?'info':a.level==='warning'?'warning':'danger'}">${a.level}</span>
+        <div class="alert-dot" style="background:${alert.level === 'warning' ? 'var(--warning)' : alert.level === 'info' ? 'var(--info)' : 'var(--danger)'}"></div>
+        <div><div class="alert-title">${h(alert.title)}</div><div class="alert-time">${fmtDate(alert.created_at)}</div><div class="alert-msg">${h(alert.message || '')}</div></div>
+        <span class="badge badge-${badgeClass(alert.level)}">${h(alert.level)}</span>
       </div>`).join('') : '<div class="empty-state">No alerts</div>';
-  } catch { document.getElementById('userAlertsTable').innerHTML = '<div class="loading">Error</div>'; }
+  } catch (error) {
+    document.getElementById('userAlertsTable').innerHTML = `<div class="loading">${h(error.message || 'Error')}</div>`;
+  }
+}
+
+async function markAlertsRead() {
+  try {
+    await api('/api/jobs/alerts/me/read-all', { method: 'POST' });
+    loadUserAlerts();
+    loadUserStats();
+  } catch (error) {
+    alert(error.message || 'Could not update alerts');
+  }
 }
 
 async function loadUserJobs() {
-  if(!cpanel_user) return;
+  if (!cpanel_user) return;
+
   try {
-    const jobs = await api(`/api/jobs/${cpanel_user}`);
-    const pending = jobs.filter(j=>j.status==='pending').length;
-    const running = jobs.filter(j=>j.status==='running').length;
-    const done = jobs.filter(j=>j.status==='completed').length;
-    const failed = jobs.filter(j=>j.status==='failed').length;
+    const jobs = await api('/api/jobs/me');
+    const pending = jobs.filter((job) => job.status === 'queued').length;
+    const running = jobs.filter((job) => job.status === 'running').length;
+    const done = jobs.filter((job) => job.status === 'completed').length;
+    const failed = jobs.filter((job) => job.status === 'failed').length;
     document.getElementById('qPending').textContent = pending;
     document.getElementById('qRunning').textContent = running;
     document.getElementById('qDone').textContent = done;
     document.getElementById('qFailed').textContent = failed;
     document.getElementById('userJobsTable').innerHTML = jobs.length ? `
-      <table><thead><tr><th>Type</th><th>Status</th><th>Started</th><th>Execution Time</th></tr></thead>
-      <tbody>${jobs.map(j => `<tr>
-        <td>${j.type}</td>
-        <td><span class="badge badge-${j.status==='completed'?'success':j.status==='running'?'info':j.status==='failed'?'danger':'warning'}"><span class="badge-dot"></span>${j.status}</span></td>
-        <td style="font-size:12px;color:var(--text3);">${j.started_at?new Date(j.started_at).toLocaleString():'—'}</td>
-        <td style="font-size:12px;color:var(--text3);">${j.started_at&&j.ended_at?Math.round((new Date(j.ended_at)-new Date(j.started_at))/1000)+' sec':'—'}</td>
+      <table><thead><tr><th>Type</th><th>Status</th><th>Started</th><th>Result</th></tr></thead>
+      <tbody>${jobs.map((job) => `<tr>
+        <td>${h(job.type)}</td>
+        <td><span class="badge badge-${badgeClass(job.status)}"><span class="badge-dot"></span>${h(job.status)}</span></td>
+        <td style="font-size:12px;color:var(--text3);">${fmtDate(job.started_at || job.created_at)}</td>
+        <td style="font-size:12px;color:var(--text3);">${job.ended_at ? fmtDate(job.ended_at) : 'In progress'}</td>
       </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No queue items</div>';
-  } catch { document.getElementById('userJobsTable').innerHTML = '<div class="loading">Error</div>'; }
+  } catch (error) {
+    document.getElementById('userJobsTable').innerHTML = `<div class="loading">${h(error.message || 'Error')}</div>`;
+  }
 }
 
 async function triggerBackupUser() {
-  if(!cpanel_user) return;
-  if(!confirm('Create a new backup now?')) return;
-  await api(`/api/backups/${cpanel_user}`, { method:'POST' });
-  showPage('queue', null);
+  if (!cpanel_user) return;
+  if (!confirm('Create a new backup now?')) return;
+
+  try {
+    await api('/api/backups/request', { method: 'POST' });
+    showPage('queue', null);
+    await loadUserJobs();
+  } catch (error) {
+    alert(error.message || 'Could not queue backup');
+  }
 }
 
-// Init
+async function bootstrap() {
+  try {
+    await exchangeSsoIfPresent();
+    const session = await api('/api/auth/session');
+
+    if (session.user?.role !== 'user') {
+      throw new Error('Open Bovedix from your cPanel plugin to start a session.');
+    }
+
+    cpanel_user = session.user.account?.cpanel_user || session.user.cpanel_user;
+    accountInfo = session.user.account || null;
+    document.getElementById('userDisplay').textContent = cpanel_user + (accountInfo?.domain ? ' — ' + accountInfo.domain : '');
+    await loadUserStats();
+  } catch (error) {
+    renderAuthError(error.message || 'Open Bovedix from cPanel to continue.');
+  }
+}
+
 const savedTheme = localStorage.getItem('theme') || 'dark';
 document.documentElement.setAttribute('data-theme', savedTheme);
-token = getToken();
-if(token) {
-  localStorage.setItem('bvx_user_token', token);
-  try {
-    const payload = JSON.parse(atob(token.split('.')[1]));
-    cpanel_user = payload.cpanel_user;
-    document.getElementById('userDisplay').textContent = cpanel_user + (payload.domain ? ' — ' + payload.domain : '');
-  } catch {}
-}
 setLang(lang);
-loadUserStats();
+bootstrap();
 </script>
 </body>
 </html>

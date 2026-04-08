@@ -1,43 +1,190 @@
 const express = require('express');
-const router = express.Router();
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../../db');
-const { adminMiddleware, authMiddleware } = require('../../middleware/auth');
+const { createAlert } = require('../../lib/jobs');
+const {
+  isSafeCpanelUser,
+  isSafeDomain,
+  normalizeCpanelUser,
+  normalizeDomain,
+  normalizeServerSlug
+} = require('../../lib/security');
+const {
+  adminMiddleware,
+  authMiddleware,
+  requireAccountAccess,
+  userMiddleware
+} = require('../../middleware/auth');
 
-// POST /api/accounts/activate
-router.post('/activate', adminMiddleware, (req, res) => {
-  const { cpanel_user, domain, plan } = req.body;
-  if (!cpanel_user || !domain) return res.status(400).json({ error: 'cpanel_user and domain required' });
+const router = express.Router();
+
+function findDefaultServer(db, requestedSlug) {
+  if (requestedSlug) {
+    return db.prepare('SELECT * FROM servers WHERE slug = ?').get(requestedSlug);
+  }
+
+  return db.prepare('SELECT * FROM servers WHERE enabled = 1 ORDER BY created_at ASC LIMIT 1').get();
+}
+
+function findAccountByCpanelUser(db, cpanelUser) {
+  return db.prepare(`
+    SELECT
+      a.*,
+      srv.slug AS server_slug,
+      srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    WHERE a.cpanel_user = ?
+    ORDER BY a.created_at DESC
+    LIMIT 1
+  `).get(cpanelUser);
+}
+
+function findAccountById(db, accountId) {
+  return db.prepare(`
+    SELECT
+      a.*,
+      srv.slug AS server_slug,
+      srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    WHERE a.id = ?
+  `).get(accountId);
+}
+
+function buildAccountStatus(db, account) {
+  const lastBackup = db.prepare(`
+    SELECT * FROM backups
+    WHERE account_id = ?
+    ORDER BY created_at DESC
+    LIMIT 1
+  `).get(account.id);
+
+  const totalBackups = db.prepare(`
+    SELECT COUNT(*) AS count FROM backups WHERE account_id = ?
+  `).get(account.id);
+
+  const queuedJobs = db.prepare(`
+    SELECT COUNT(*) AS count FROM jobs
+    WHERE account_id = ? AND status IN ('queued', 'running')
+  `).get(account.id);
+
+  return {
+    account,
+    lastBackup,
+    totalBackups: totalBackups.count,
+    queuedJobs: queuedJobs.count
+  };
+}
+
+function createOrUpdateAccount(req, res) {
   const db = getDb();
-  const existing = db.prepare('SELECT * FROM accounts WHERE cpanel_user = ?').get(cpanel_user);
-  if (existing) return res.status(409).json({ error: 'Account already exists', account: existing });
+  const cpanelUser = normalizeCpanelUser(req.body?.cpanel_user);
+  const domain = normalizeDomain(req.body?.domain);
+  const plan = String(req.body?.plan || 'basic').trim();
+  const requestedServerSlug = normalizeServerSlug(req.body?.server_slug || '');
+
+  if (!isSafeCpanelUser(cpanelUser) || !isSafeDomain(domain)) {
+    return res.status(400).json({ error: 'cpanel_user and domain are required' });
+  }
+
+  const server = findDefaultServer(db, requestedServerSlug || null);
+
+  if (!server) {
+    return res.status(400).json({ error: 'No cPanel server configured' });
+  }
+
+  const existing = db.prepare(`
+    SELECT * FROM accounts
+    WHERE server_id = ? AND cpanel_user = ?
+  `).get(server.id, cpanelUser);
+
+  if (existing) {
+    return res.status(409).json({ error: 'Account already exists' });
+  }
+
   const id = uuidv4();
-  const storage_path = `/${cpanel_user}`;
-  db.prepare('INSERT INTO accounts (id, cpanel_user, domain, plan, storage_path) VALUES (?, ?, ?, ?, ?)')
-    .run(id, cpanel_user, domain, plan || 'basic', storage_path);
-  db.prepare("INSERT INTO alerts (id, account_id, title, message, level) VALUES (?, ?, ?, ?, ?)")
-    .run(uuidv4(), id, 'Account activated', `Account ${cpanel_user} has been activated successfully`, 'info');
-  return res.json({ success: true, account: { id, cpanel_user, domain, plan, storage_path } });
+  const storagePath = `/${server.slug}/${cpanelUser}`;
+
+  db.prepare(`
+    INSERT INTO accounts (
+      id, server_id, cpanel_user, domain, plan, status, storage_path, auto_backup_enabled
+    ) VALUES (?, ?, ?, ?, ?, 'active', ?, 0)
+  `).run(id, server.id, cpanelUser, domain, plan, storagePath);
+
+  createAlert({
+    accountId: id,
+    title: 'Account activated',
+    message: `Account ${cpanelUser} is now active on ${server.name}.`,
+    level: 'info'
+  });
+
+  return res.json({
+    success: true,
+    account: {
+      id,
+      cpanel_user: cpanelUser,
+      domain,
+      plan,
+      storage_path: storagePath,
+      server_slug: server.slug,
+      server_name: server.name
+    }
+  });
+}
+
+router.post('/activate', adminMiddleware, createOrUpdateAccount);
+router.post('/', adminMiddleware, createOrUpdateAccount);
+
+router.get('/me/status', userMiddleware, (req, res) => {
+  const db = getDb();
+  const account = findAccountById(db, req.user.account_id);
+
+  if (!account) {
+    return res.status(404).json({ error: 'Account not found' });
+  }
+
+  return res.json(buildAccountStatus(db, account));
 });
 
-// GET /api/accounts/:cpanel_user/status
 router.get('/:cpanel_user/status', authMiddleware, (req, res) => {
   const db = getDb();
-  const account = db.prepare('SELECT * FROM accounts WHERE cpanel_user = ?').get(req.params.cpanel_user);
-  if (!account) return res.status(404).json({ error: 'Account not found' });
-  const lastBackup = db.prepare('SELECT * FROM backups WHERE account_id = ? ORDER BY created_at DESC LIMIT 1').get(account.id);
-  const totalBackups = db.prepare('SELECT COUNT(*) as count FROM backups WHERE account_id = ?').get(account.id);
-  return res.json({ account, lastBackup, totalBackups: totalBackups.count });
+  const account = findAccountByCpanelUser(db, req.params.cpanel_user);
+
+  if (!requireAccountAccess(req, res, account)) {
+    return;
+  }
+
+  return res.json(buildAccountStatus(db, account));
 });
 
-// GET /api/accounts — admin only
 router.get('/', adminMiddleware, (req, res) => {
   const db = getDb();
-  const accounts = db.prepare('SELECT * FROM accounts ORDER BY created_at DESC').all();
-  const result = accounts.map(a => {
-    const backups = db.prepare('SELECT COUNT(*) as count FROM backups WHERE account_id = ?').get(a.id);
-    return { ...a, totalBackups: backups.count };
+  const accounts = db.prepare(`
+    SELECT
+      a.*,
+      srv.slug AS server_slug,
+      srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    ORDER BY a.created_at DESC
+  `).all();
+
+  const result = accounts.map((account) => {
+    const backups = db.prepare('SELECT COUNT(*) AS count FROM backups WHERE account_id = ?').get(account.id);
+    const activeJobs = db.prepare(`
+      SELECT COUNT(*) AS count
+      FROM jobs
+      WHERE account_id = ? AND status IN ('queued', 'running')
+    `).get(account.id);
+
+    return {
+      ...account,
+      totalBackups: backups.count,
+      activeJobs: activeJobs.count
+    };
   });
+
   return res.json(result);
 });
 
