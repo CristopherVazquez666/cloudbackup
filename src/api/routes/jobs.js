@@ -95,6 +95,40 @@ router.post('/alerts/me/read-all', authMiddleware, (req, res) => {
   return res.json({ success: true });
 });
 
+router.post('/alerts/me/read-selected', authMiddleware, (req, res) => {
+  if (req.user.role !== 'user') {
+    return res.status(403).json({ error: 'User session required' });
+  }
+
+  const ids = Array.isArray(req.body?.ids)
+    ? req.body.ids.map((value) => String(value || '').trim()).filter(Boolean)
+    : [];
+
+  if (!ids.length) {
+    return res.json({ success: true, updated: 0 });
+  }
+
+  const db = getDb();
+  const markSelectedRead = db.transaction((selectedIds) => {
+    const statement = db.prepare(`
+      UPDATE alerts
+      SET read = 1
+      WHERE id = ?
+        AND account_id = ?
+    `);
+
+    let updated = 0;
+    for (const id of selectedIds) {
+      const result = statement.run(id, req.user.account_id);
+      updated += result.changes;
+    }
+    return updated;
+  });
+
+  const updated = markSelectedRead(ids);
+  return res.json({ success: true, updated });
+});
+
 router.get('/me', authMiddleware, (req, res) => {
   if (req.user.role !== 'user') {
     return res.status(403).json({ error: 'User session required' });
@@ -110,6 +144,61 @@ router.get('/me', authMiddleware, (req, res) => {
   `).all(req.user.account_id);
 
   return res.json(jobs);
+});
+
+router.post('/me/cancel-selected', authMiddleware, (req, res) => {
+  if (req.user.role !== 'user') {
+    return res.status(403).json({ error: 'User session required' });
+  }
+
+  const ids = Array.isArray(req.body?.ids)
+    ? req.body.ids.map((value) => String(value || '').trim()).filter(Boolean)
+    : [];
+
+  if (!ids.length) {
+    return res.json({ success: true, updated: 0 });
+  }
+
+  const db = getDb();
+  const cancelSelectedQueued = db.transaction((selectedIds) => {
+    const statement = db.prepare(`
+      UPDATE jobs
+      SET status = 'canceled',
+          ended_at = CURRENT_TIMESTAMP,
+          updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+        AND account_id = ?
+        AND status = 'queued'
+    `);
+
+    let updated = 0;
+    for (const id of selectedIds) {
+      const result = statement.run(id, req.user.account_id);
+      updated += result.changes;
+    }
+    return updated;
+  });
+
+  const updated = cancelSelectedQueued(ids);
+  return res.json({ success: true, updated });
+});
+
+router.post('/me/cancel-all-queued', authMiddleware, (req, res) => {
+  if (req.user.role !== 'user') {
+    return res.status(403).json({ error: 'User session required' });
+  }
+
+  const db = getDb();
+  const result = db.prepare(`
+    UPDATE jobs
+    SET status = 'canceled',
+        ended_at = CURRENT_TIMESTAMP,
+        updated_at = CURRENT_TIMESTAMP
+    WHERE account_id = ?
+      AND status = 'queued'
+  `).run(req.user.account_id);
+
+  return res.json({ success: true, updated: result.changes });
 });
 
 router.get('/', adminMiddleware, (req, res) => {

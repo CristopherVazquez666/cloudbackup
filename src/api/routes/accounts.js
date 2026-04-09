@@ -15,6 +15,7 @@ const {
   requireAccountAccess,
   userMiddleware
 } = require('../../middleware/auth');
+const { getPlanDefinition, listPlanDefinitions, normalizePlanKey } = require('../../lib/plans');
 
 const router = express.Router();
 
@@ -69,11 +70,57 @@ function buildAccountStatus(db, account) {
     WHERE account_id = ? AND status IN ('queued', 'running')
   `).get(account.id);
 
+  const backupUsage = db.prepare(`
+    SELECT COALESCE(SUM(filesize), 0) AS used_bytes
+    FROM backups
+    WHERE account_id = ? AND status = 'ready'
+  `).get(account.id);
+
+  const plan = getPlanDefinition(normalizePlanKey(account.plan));
+  const usedBytes = Number(backupUsage.used_bytes) || 0;
+  const quotaBytes = plan.quota_bytes;
+  const availableBytes = Math.max(quotaBytes - Math.min(usedBytes, quotaBytes), 0);
+  const usagePercent = quotaBytes > 0
+    ? Math.round(Math.max(0, Math.min(usedBytes / quotaBytes, 1)) * 100)
+    : 0;
+
   return {
-    account,
+    account: {
+      ...account,
+      plan: plan.key
+    },
+    storage: {
+      plan_key: plan.key,
+      plan_label: plan.label,
+      storage_gb: plan.storage_gb,
+      quota_bytes: quotaBytes,
+      used_bytes: usedBytes,
+      available_bytes: availableBytes,
+      usage_percent: usagePercent
+    },
     lastBackup,
     totalBackups: totalBackups.count,
     queuedJobs: queuedJobs.count
+  };
+}
+
+function decorateAccountWithPlan(db, account) {
+  const backups = db.prepare('SELECT COUNT(*) AS count FROM backups WHERE account_id = ?').get(account.id);
+  const activeJobs = db.prepare(`
+    SELECT COUNT(*) AS count
+    FROM jobs
+    WHERE account_id = ? AND status IN ('queued', 'running')
+  `).get(account.id);
+  const plan = getPlanDefinition(normalizePlanKey(account.plan));
+
+  return {
+    ...account,
+    plan: plan.key,
+    plan_key: plan.key,
+    plan_label: plan.label,
+    plan_storage_gb: plan.storage_gb,
+    totalBackups: backups.count,
+    activeJobs: activeJobs.count
   };
 }
 
@@ -81,7 +128,7 @@ function createOrUpdateAccount(req, res) {
   const db = getDb();
   const cpanelUser = normalizeCpanelUser(req.body?.cpanel_user);
   const domain = normalizeDomain(req.body?.domain);
-  const plan = String(req.body?.plan || 'basic').trim();
+  const plan = getPlanDefinition(normalizePlanKey(req.body?.plan)).key;
   const requestedServerSlug = normalizeServerSlug(req.body?.server_slug || '');
 
   if (!isSafeCpanelUser(cpanelUser) || !isSafeDomain(domain)) {
@@ -126,6 +173,9 @@ function createOrUpdateAccount(req, res) {
       cpanel_user: cpanelUser,
       domain,
       plan,
+      plan_key: plan,
+      plan_label: getPlanDefinition(plan).label,
+      plan_storage_gb: getPlanDefinition(plan).storage_gb,
       storage_path: storagePath,
       server_slug: server.slug,
       server_name: server.name
@@ -135,6 +185,9 @@ function createOrUpdateAccount(req, res) {
 
 router.post('/activate', adminMiddleware, createOrUpdateAccount);
 router.post('/', adminMiddleware, createOrUpdateAccount);
+router.get('/plans', adminMiddleware, (req, res) => {
+  return res.json(listPlanDefinitions());
+});
 
 router.get('/me/status', userMiddleware, (req, res) => {
   const db = getDb();
@@ -170,20 +223,7 @@ router.get('/', adminMiddleware, (req, res) => {
     ORDER BY a.created_at DESC
   `).all();
 
-  const result = accounts.map((account) => {
-    const backups = db.prepare('SELECT COUNT(*) AS count FROM backups WHERE account_id = ?').get(account.id);
-    const activeJobs = db.prepare(`
-      SELECT COUNT(*) AS count
-      FROM jobs
-      WHERE account_id = ? AND status IN ('queued', 'running')
-    `).get(account.id);
-
-    return {
-      ...account,
-      totalBackups: backups.count,
-      activeJobs: activeJobs.count
-    };
-  });
+  const result = accounts.map((account) => decorateAccountWithPlan(db, account));
 
   return res.json(result);
 });

@@ -83,19 +83,55 @@ function isDevUserPreviewEnabled() {
   return process.env.NODE_ENV !== 'production' && process.env.DEV_ALLOW_DIRECT_USER_PREVIEW === 'true';
 }
 
-function ensureDevPreviewAccount(db) {
-  const existing = db.prepare(`
-    SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
-    FROM accounts a
-    JOIN servers srv ON srv.id = a.server_id
-    WHERE a.status = 'active'
-    ORDER BY a.created_at ASC
-    LIMIT 1
-  `).get();
+function getDevPreviewFixtures() {
+  const gib = 1024 ** 3;
 
-  if (existing) {
-    return existing;
-  }
+  return {
+    basic: {
+      cpanelUser: 'demo-basic',
+      domain: 'basic.demo.localhost',
+      plan: 'basic',
+      backups: [
+        { filename: 'basic-weekly-full.tar.zst', filesize: 18 * gib, createdAt: '2026-04-07T09:30:00Z' },
+        { filename: 'basic-daily-full.tar.zst', filesize: 14 * gib, createdAt: '2026-04-08T09:30:00Z' }
+      ]
+    },
+    pro: {
+      cpanelUser: 'demo-pro',
+      domain: 'pro.demo.localhost',
+      plan: 'pro',
+      backups: [
+        { filename: 'pro-weekly-full.tar.zst', filesize: 72 * gib, createdAt: '2026-04-06T08:15:00Z' },
+        { filename: 'pro-midweek-full.tar.zst', filesize: 58 * gib, createdAt: '2026-04-07T08:15:00Z' },
+        { filename: 'pro-daily-full.tar.zst', filesize: 46 * gib, createdAt: '2026-04-08T08:15:00Z' }
+      ]
+    },
+    business: {
+      cpanelUser: 'demo-business',
+      domain: 'business.demo.localhost',
+      plan: 'business',
+      backups: [
+        { filename: 'business-weekly-full.tar.zst', filesize: 126 * gib, createdAt: '2026-04-05T11:20:00Z' },
+        { filename: 'business-midweek-full.tar.zst', filesize: 104 * gib, createdAt: '2026-04-07T11:20:00Z' },
+        { filename: 'business-daily-full.tar.zst', filesize: 88 * gib, createdAt: '2026-04-08T11:20:00Z' }
+      ]
+    },
+    enterprise: {
+      cpanelUser: 'demo-enterprise',
+      domain: 'enterprise.demo.localhost',
+      plan: 'enterprise',
+      backups: [
+        { filename: 'enterprise-weekly-full.tar.zst', filesize: 248 * gib, createdAt: '2026-04-04T13:45:00Z' },
+        { filename: 'enterprise-midweek-full.tar.zst', filesize: 220 * gib, createdAt: '2026-04-06T13:45:00Z' },
+        { filename: 'enterprise-daily-full.tar.zst', filesize: 184 * gib, createdAt: '2026-04-08T13:45:00Z' }
+      ]
+    }
+  };
+}
+
+function ensureDevPreviewAccount(db, requestedPlan = 'basic') {
+  const fixtures = getDevPreviewFixtures();
+  const fixture = fixtures[requestedPlan] || fixtures.basic;
 
   const server = db.prepare(`
     SELECT *
@@ -109,16 +145,50 @@ function ensureDevPreviewAccount(db) {
     return null;
   }
 
-  const accountId = uuidv4();
-  const cpanelUser = 'demo';
-  const domain = 'demo.localhost';
-  const storagePath = `/${server.slug}/${cpanelUser}`;
+  const existing = db.prepare(`
+    SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    WHERE a.server_id = ? AND a.cpanel_user = ?
+    LIMIT 1
+  `).get(server.id, fixture.cpanelUser);
 
-  db.prepare(`
-    INSERT INTO accounts (
-      id, server_id, cpanel_user, domain, plan, status, storage_path, auto_backup_enabled
-    ) VALUES (?, ?, ?, ?, 'basic', 'active', ?, 0)
-  `).run(accountId, server.id, cpanelUser, domain, storagePath);
+  let accountId = existing?.id || uuidv4();
+  const storagePath = `/${server.slug}/${fixture.cpanelUser}`;
+
+  if (existing) {
+    db.prepare(`
+      UPDATE accounts
+      SET domain = ?, plan = ?, status = 'active', storage_path = ?, auto_backup_enabled = 0, updated_at = CURRENT_TIMESTAMP
+      WHERE id = ?
+    `).run(fixture.domain, fixture.plan, storagePath, existing.id);
+  } else {
+    db.prepare(`
+      INSERT INTO accounts (
+        id, server_id, cpanel_user, domain, plan, status, storage_path, auto_backup_enabled
+      ) VALUES (?, ?, ?, ?, ?, 'active', ?, 0)
+    `).run(accountId, server.id, fixture.cpanelUser, fixture.domain, fixture.plan, storagePath);
+  }
+
+  db.prepare(`DELETE FROM backups WHERE account_id = ?`).run(accountId);
+
+  const insertBackup = db.prepare(`
+    INSERT INTO backups (
+      id, account_id, filename, filesize, kind, status, remote_path, checksum, created_at
+    ) VALUES (?, ?, ?, ?, 'full', 'ready', ?, ?, ?)
+  `);
+
+  fixture.backups.forEach((backup, index) => {
+    insertBackup.run(
+      uuidv4(),
+      accountId,
+      backup.filename,
+      backup.filesize,
+      `${storagePath}/${backup.filename}`,
+      `dev-preview-${fixture.plan}-${index + 1}`,
+      backup.createdAt
+    );
+  });
 
   return db.prepare(`
     SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
@@ -171,7 +241,8 @@ router.get('/dev/user-preview', (req, res) => {
   }
 
   const db = getDb();
-  const account = ensureDevPreviewAccount(db);
+  const requestedPlan = String(req.query.plan || 'basic').trim().toLowerCase();
+  const account = ensureDevPreviewAccount(db, requestedPlan);
 
   if (!account) {
     return res.status(500).json({ error: 'No enabled server is available for local preview' });

@@ -120,23 +120,190 @@ body.sidebar-collapsed .nav-icon { width:20px; height:20px; min-width:20px; min-
 .content { flex:1; overflow-y:auto; padding:28px 30px 42px; }
 
 /* Stats */
-.stats-row { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:24px; }
-.stat-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; min-height:120px; padding:20px 22px; display:flex; align-items:center; justify-content:space-between; }
-.stat-value { font-family:'Manrope',sans-serif; font-size:26px; font-weight:600; letter-spacing:-0.05em; }
-.stat-label { font-size:12px; color:var(--text2); margin-top:4px; }
-.stat-icon { width:42px; height:42px; border-radius:12px; display:flex; align-items:center; justify-content:center; background:rgba(249,115,22,0.12); color:var(--accent); }
-.stat-icon svg { width:18px; height:18px; }
+.stats-row {
+  display:grid;
+  grid-template-columns:repeat(12, minmax(0, 1fr));
+  gap:18px;
+  margin-bottom:28px;
+}
+.storage-card,
+.stat-card {
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:18px;
+}
+.storage-card {
+  grid-column:1 / -1;
+  min-height:156px;
+  padding:22px 24px;
+  display:block;
+}
+.storage-copy { min-width:0; }
+.storage-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:18px;
+  margin-bottom:18px;
+}
+.storage-eyebrow {
+  font-size:11px;
+  font-weight:600;
+  letter-spacing:0.12em;
+  text-transform:uppercase;
+  color:var(--text3);
+}
+.storage-plan {
+  margin-top:8px;
+  font-family:'Manrope',sans-serif;
+  font-size:34px;
+  font-weight:700;
+  line-height:0.98;
+  letter-spacing:-0.06em;
+  color:transparent;
+  background:var(--plan-gradient, linear-gradient(135deg, #F3F4F6, #CBD5E1));
+  -webkit-background-clip:text;
+  background-clip:text;
+  text-shadow:0 0 22px color-mix(in srgb, var(--plan-tone, var(--text)) 20%, transparent);
+}
+.plan-tier-basic {
+  --plan-tone:#DCE3EE;
+  --plan-gradient:linear-gradient(135deg, #F9FBFF 0%, #C9D2DE 34%, #FFFFFF 56%, #99A4B3 100%);
+}
+.plan-tier-pro {
+  --plan-tone:#E8BE57;
+  --plan-gradient:linear-gradient(135deg, #FFF4BF 0%, #E8BE57 38%, #FFE7A2 62%, #B8831F 100%);
+}
+.plan-tier-business {
+  --plan-tone:#68D3FF;
+  --plan-gradient:linear-gradient(135deg, #DDF7FF 0%, #77E2FF 36%, #B4F0FF 58%, #3297E8 100%);
+}
+.plan-tier-enterprise {
+  --plan-tone:#B78CFF;
+  --plan-gradient:linear-gradient(135deg, #F0E2FF 0%, #C89BFF 34%, #E7D1FF 58%, #7B44E3 100%);
+}
+.plan-tier-custom {
+  --plan-tone:#CDA9FF;
+  --plan-gradient:linear-gradient(135deg, #F1E4FF 0%, #D6B8FF 34%, #F4EBFF 58%, #9B67E6 100%);
+}
+.storage-usage-copy {
+  font-size:15px;
+  color:var(--text);
+}
+.storage-usage-copy strong {
+  font-weight:600;
+  color:var(--text);
+}
+.storage-meter {
+  width:100%;
+  height:10px;
+  margin-top:16px;
+  border-radius:999px;
+  overflow:hidden;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.04);
+}
+.storage-meter-fill {
+  width:0;
+  height:100%;
+  border-radius:999px;
+  background:linear-gradient(90deg, color-mix(in srgb, var(--plan-tone, var(--accent)) 78%, white 22%), var(--plan-tone, var(--accent)));
+}
+.storage-pill {
+  flex-shrink:0;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:38px;
+  padding:0 14px;
+  border-radius:999px;
+  border:1px solid color-mix(in srgb, var(--plan-tone, var(--border2)) 42%, transparent);
+  background:color-mix(in srgb, var(--plan-tone, transparent) 10%, var(--bg3));
+  color:var(--text);
+  font-size:12px;
+  font-weight:600;
+}
+.storage-pill strong {
+  color:var(--plan-tone, var(--accent));
+  font-size:15px;
+  letter-spacing:-0.03em;
+}
+.stat-card {
+  grid-column:span 4;
+  min-height:154px;
+  padding:22px 24px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:18px;
+}
+.stat-value { font-family:'Manrope',sans-serif; font-size:34px; font-weight:700; letter-spacing:-0.06em; line-height:0.98; }
+.stat-value.is-text { font-size:28px; }
+.stat-label { font-size:12px; color:var(--text2); margin-top:6px; }
+.stat-sub { font-size:12px; color:var(--text3); margin-top:6px; }
+.stat-icon { width:48px; height:48px; border-radius:14px; display:flex; align-items:center; justify-content:center; background:rgba(249,115,22,0.12); color:var(--accent); flex-shrink:0; }
+.stat-icon svg { width:20px; height:20px; }
 .stat-icon.green { background:rgba(16,185,129,0.1); color:var(--success); }
 .stat-icon.red { background:rgba(239,68,68,0.1); color:var(--danger); }
 
 /* Restore grid */
-.restore-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(190px,1fr)); gap:16px; margin-bottom:24px; }
-.restore-card { background:var(--bg2); border:1px solid var(--border); border-radius:16px; min-height:142px; padding:22px 18px; text-align:center; cursor:pointer; transition:all 0.2s; display:flex; flex-direction:column; justify-content:center; }
+.home-section { margin-bottom:28px; }
+.home-section-head {
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:14px;
+  margin-bottom:14px;
+}
+.home-section-copy {
+  font-size:13px;
+  color:var(--text3);
+  max-width:560px;
+  line-height:1.5;
+}
+.restore-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:16px; margin-bottom:0; }
+.restore-card {
+  background:var(--bg2);
+  border:1px solid var(--border);
+  border-radius:18px;
+  min-height:176px;
+  padding:22px 20px;
+  text-align:center;
+  cursor:pointer;
+  transition:all 0.2s;
+  display:grid;
+  place-items:center;
+  gap:14px;
+  align-content:center;
+}
 .restore-card:hover { border-color:var(--border2); background:var(--bg3); transform:translateY(-2px); }
 .restore-card.active-tab { border-color:var(--primary); background:rgba(249,115,22,0.12); }
-.restore-icon { width:28px; height:28px; margin:0 auto 12px; display:flex; align-items:center; justify-content:center; color:var(--accent); }
-.restore-icon svg { width:22px; height:22px; stroke:currentColor; fill:none; stroke-width:1.8; }
-.restore-label { font-size:12px; color:var(--text2); font-weight:500; line-height:1.4; }
+.restore-icon {
+  width:60px;
+  height:60px;
+  border-radius:18px;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  color:var(--accent);
+  background:rgba(249,115,22,0.09);
+  border:1px solid var(--border);
+}
+.restore-icon svg {
+  width:28px;
+  height:28px;
+  stroke:currentColor;
+  fill:none;
+  stroke-width:1.8;
+  stroke-linecap:round;
+  stroke-linejoin:round;
+}
+.restore-card-body {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.restore-label { font-size:15px; color:var(--text); font-weight:600; line-height:1.32; max-width:164px; }
 
 /* Section */
 .section { background:var(--bg2); border:1px solid var(--border); border-radius:16px; overflow:hidden; margin-bottom:18px; }
@@ -147,8 +314,41 @@ body.sidebar-collapsed .nav-icon { width:20px; height:20px; min-width:20px; min-
 .btn-danger { background:rgba(239,68,68,0.15); color:var(--danger); border:1px solid rgba(239,68,68,0.3); }
 .btn-ghost { background:var(--bg3); color:var(--text2); border:1px solid var(--border); }
 .btn-ghost:hover { border-color:var(--border2); color:var(--text); }
+.btn:disabled { opacity:0.45; cursor:not-allowed; transform:none; box-shadow:none; }
 .btn svg { width:13px; height:13px; }
-.home-section-title { font-family:'Manrope',sans-serif; font-size:14px; font-weight:600; letter-spacing:-0.03em; margin-bottom:12px; }
+.restore-actions {
+  padding:16px 20px 18px;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.restore-actions .btn {
+  min-width:136px;
+  justify-content:center;
+  padding:10px 16px;
+  border-radius:14px;
+  font-size:13px;
+  font-weight:700;
+  letter-spacing:-0.02em;
+}
+.restore-actions .btn-primary {
+  box-shadow:0 12px 28px rgba(249,115,22,0.16);
+}
+.restore-actions .btn-ghost {
+  background:rgba(255,255,255,0.02);
+}
+.restore-actions .btn svg {
+  width:15px;
+  height:15px;
+  stroke-width:2;
+  flex-shrink:0;
+}
+.restore-helper {
+  padding:0 20px 14px;
+  font-size:12px;
+  color:var(--text3);
+}
+.home-section-title { font-family:'Manrope',sans-serif; font-size:15px; font-weight:600; letter-spacing:-0.03em; }
 
 table { width:100%; border-collapse:collapse; }
 thead th { padding:11px 20px; font-size:11px; font-weight:600; letter-spacing:0.08em; color:var(--text3); text-transform:uppercase; text-align:left; background:var(--bg3); border-bottom:1px solid var(--border); }
@@ -174,6 +374,78 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
 .page.active { display:block; }
 .empty-state { padding:36px; text-align:center; color:var(--text3); font-size:13px; }
 .loading { padding:36px; text-align:center; color:var(--text3); font-size:13px; }
+.modal-overlay {
+  position:fixed;
+  inset:0;
+  background:rgba(7,7,12,0.66);
+  backdrop-filter:blur(8px);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  z-index:80;
+  padding:20px;
+}
+.modal-overlay.visible { display:flex; }
+.modal-card {
+  width:min(100%, 460px);
+  background:var(--bg2);
+  border:1px solid var(--border2);
+  border-radius:20px;
+  box-shadow:0 24px 80px rgba(0,0,0,0.35);
+  overflow:hidden;
+}
+.modal-head {
+  padding:18px 22px;
+  border-bottom:1px solid var(--border);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+}
+.modal-title {
+  font-family:'Manrope',sans-serif;
+  font-size:16px;
+  font-weight:700;
+  letter-spacing:-0.04em;
+}
+.modal-close {
+  width:34px;
+  height:34px;
+  border-radius:12px;
+  border:1px solid var(--border);
+  background:var(--bg3);
+  color:var(--text2);
+  cursor:pointer;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+}
+.modal-close:hover { color:var(--text); border-color:var(--border2); }
+.modal-body {
+  padding:20px 22px 22px;
+  display:grid;
+  gap:14px;
+}
+.modal-copy {
+  font-size:14px;
+  color:var(--text2);
+  line-height:1.6;
+}
+.modal-warning {
+  padding:14px 16px;
+  border-radius:14px;
+  background:rgba(245,158,11,0.08);
+  border:1px solid rgba(245,158,11,0.18);
+  color:#F6C76A;
+  font-size:13px;
+  line-height:1.55;
+}
+.modal-actions {
+  display:flex;
+  justify-content:flex-end;
+  gap:10px;
+  flex-wrap:wrap;
+}
 
 ::-webkit-scrollbar { width:5px; }
 ::-webkit-scrollbar-thumb { background:var(--bg3); border-radius:3px; }
@@ -182,9 +454,97 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
 .q-stat { text-align:center; padding:14px; background:var(--bg3); border-radius:12px; }
 .q-stat-val { font-family:'Manrope',sans-serif; font-size:22px; font-weight:600; letter-spacing:-0.04em; }
 .q-stat-label { font-size:11px; color:var(--text2); margin-top:3px; }
+.toolbar-stack { display:grid; gap:14px; padding:0 20px 18px; }
+.toolbar-row { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
+.toolbar-group { display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+.filter-chip {
+  padding:8px 12px;
+  border-radius:999px;
+  border:1px solid var(--border);
+  background:var(--bg3);
+  color:var(--text2);
+  font-size:12px;
+  font-weight:600;
+  cursor:pointer;
+  transition:all 0.2s ease;
+}
+.filter-chip:hover { border-color:var(--border2); color:var(--text); }
+.filter-chip.active { background:rgba(249,115,22,0.14); color:var(--accent); border-color:var(--border2); }
+.toolbar-note { font-size:12px; color:var(--text3); }
+.toolbar-count { font-size:12px; color:var(--text2); }
+.download-status {
+  display:grid;
+  gap:6px;
+  min-width:190px;
+}
+.download-status-copy {
+  font-size:12px;
+  color:var(--text2);
+}
+.download-status-copy strong { color:var(--text); }
+.mini-progress {
+  width:100%;
+  height:8px;
+  border-radius:999px;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(255,255,255,0.04);
+  overflow:hidden;
+}
+.mini-progress > span {
+  display:block;
+  height:100%;
+  width:0;
+  border-radius:999px;
+  background:linear-gradient(90deg, #FDBA74, #F97316);
+}
+.select-col {
+  width:44px;
+  text-align:center;
+}
+.select-checkbox {
+  width:16px;
+  height:16px;
+  accent-color:var(--primary);
+  cursor:pointer;
+}
+.job-meta {
+  display:grid;
+  gap:4px;
+}
+.job-submeta {
+  font-size:12px;
+  color:var(--text3);
+}
+.job-actions {
+  display:flex;
+  justify-content:flex-end;
+}
+.alert-item {
+  display:grid;
+  grid-template-columns:auto auto 1fr auto;
+  align-items:flex-start;
+}
+.alert-main {
+  display:grid;
+  gap:2px;
+}
+.alert-controls {
+  padding:0 20px 18px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+.muted-inline {
+  font-size:12px;
+  color:var(--text3);
+}
 
 @media (max-width: 1240px) {
-  .restore-grid { grid-template-columns:repeat(auto-fit,minmax(176px,1fr)); }
+  .storage-card { grid-column:1 / -1; }
+  .stat-card { grid-column:span 6; }
+  .restore-grid { grid-template-columns:repeat(auto-fit,minmax(196px,1fr)); }
 }
 
 @media (max-width: 960px) {
@@ -192,6 +552,10 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
   .sidebar { width:176px; min-width:176px; }
   .topbar { padding:0 20px; }
   .content { padding:22px; }
+  .stat-card { grid-column:span 12; min-height:154px; }
+  .storage-head { flex-direction:column; align-items:flex-start; }
+  .home-section-head { align-items:flex-start; flex-direction:column; }
+  .alert-item { grid-template-columns:auto auto 1fr; }
 }
 </style>
 </head>
@@ -221,7 +585,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
     </div>
     <div class="nav-item" data-page="restore" onclick="showPage('restore', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></span>
-      <span class="nav-label" data-i18n="nav.restore">Restore & Download</span>
+      <span class="nav-label" data-i18n="nav.restore">Restore</span>
     </div>
     <div class="nav-item" data-page="downloads" onclick="showPage('downloads', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
@@ -266,20 +630,34 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
     <!-- Home -->
     <div class="page active" id="page-home">
       <div class="stats-row" id="userStats"><div class="loading">Loading...</div></div>
-      <div style="margin-bottom:12px;"><div class="home-section-title" data-i18n="home.restoreTitle">Restore & Download</div>
-      <div class="restore-grid">
-        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('full')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="3"></rect><path d="M9 10h6"></path><path d="M9 14h6"></path></svg></div><div class="restore-label" data-i18n="restore.full">Full Backups</div></div>
-        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('homedir')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="5" y="6" width="14" height="12" rx="3"></rect><path d="M10 6v12"></path><path d="M13 10h3"></path><path d="M13 14h3"></path></svg></div><div class="restore-label" data-i18n="restore.homedir">Home Directory</div></div>
-        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('db')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="8" cy="8" r="1.5"></circle><circle cx="16" cy="8" r="1.5"></circle><circle cx="8" cy="16" r="1.5"></circle><circle cx="16" cy="16" r="1.5"></circle><path d="M8 8h8"></path><path d="M8 16h8"></path><path d="M8 8v8"></path><path d="M16 8v8"></path></svg></div><div class="restore-label" data-i18n="restore.db">Databases</div></div>
-        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('mail')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M6 16l4-8"></path><path d="M10 16l4-8"></path><path d="M14 16l4-8"></path><path d="M5 18h14"></path></svg></div><div class="restore-label" data-i18n="restore.mail">Email Accounts</div></div>
-        <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('ssl')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"></circle><path d="M9.5 12h5"></path><path d="M12 9.5v5"></path></svg></div><div class="restore-label" data-i18n="restore.ssl">Certificates</div></div>
-      </div></div>
-      <div class="home-section-title" data-i18n="home.manageTitle">View & Manage</div>
-      <div class="restore-grid">
-        <div class="restore-card" onclick="showPage('queue',null)"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 7h10"></path><path d="M7 12h7"></path><path d="M7 17h10"></path><circle cx="17" cy="12" r="1.5"></circle></svg></div><div class="restore-label" data-i18n="nav.queue">Queue</div></div>
-        <div class="restore-card" onclick="triggerBackupUser()"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6v12"></path><path d="M6 12h12"></path><rect x="4" y="4" width="16" height="16" rx="5"></rect></svg></div><div class="restore-label" data-i18n="home.createBackup">Create Backup</div></div>
-        <div class="restore-card" onclick="showPage('downloads',null)"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 6v8"></path><path d="M9 11l3 3 3-3"></path><path d="M6 18h12"></path></svg></div><div class="restore-label" data-i18n="nav.downloads">Downloads</div></div>
-        <div class="restore-card" onclick="showPage('alerts',null)"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="1.5"></circle><path d="M12 4v2"></path><path d="M12 18v2"></path></svg></div><div class="restore-label" data-i18n="nav.alerts">Alerts</div></div>
+      <div class="home-section">
+        <div class="home-section-head">
+          <div>
+            <div class="home-section-title" data-i18n="home.restoreSourcesTitle">Restore Sources</div>
+            <div class="home-section-copy" data-i18n="home.restoreSourcesCopy">Pick the part of your hosting account you want to recover from protected backups.</div>
+          </div>
+        </div>
+        <div class="restore-grid">
+          <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('full')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"></circle><path d="M5 12h14"></path><path d="M12 5c2.1 2 3.2 4.4 3.2 7s-1.1 5-3.2 7"></path><path d="M12 5c-2.1 2-3.2 4.4-3.2 7s1.1 5 3.2 7"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="restore.full">Full Backups</div></div></div>
+          <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('homedir')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M4 8.5h6l1.8-2H20v10.5a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8.5z"></path><path d="M4 8.5V7a2 2 0 0 1 2-2h4"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="restore.homedir">Home Directory</div></div></div>
+          <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('db')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><ellipse cx="12" cy="6" rx="7" ry="2.5"></ellipse><path d="M5 6v8c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5V6"></path><path d="M5 10c0 1.4 3.1 2.5 7 2.5s7-1.1 7-2.5"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="restore.db">Databases</div></div></div>
+          <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('mail')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="6" width="16" height="12" rx="3"></rect><path d="M5.5 8l6.5 5 6.5-5"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="restore.mail">Email Accounts</div></div></div>
+          <div class="restore-card" onclick="showPage('restore',null);setRestoreTab('ssl')"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 11V8.5a4 4 0 0 1 8 0V11"></path><rect x="6" y="11" width="12" height="9" rx="2.5"></rect><path d="M12 14v3"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="restore.ssl">Certificates</div></div></div>
+        </div>
+      </div>
+      <div class="home-section">
+        <div class="home-section-head">
+          <div>
+            <div class="home-section-title" data-i18n="home.operationsTitle">Operations & Monitoring</div>
+            <div class="home-section-copy" data-i18n="home.operationsCopy">Manage backup activity, review job progress, and follow important account events.</div>
+          </div>
+        </div>
+        <div class="restore-grid">
+          <div class="restore-card" onclick="showPage('queue',null)"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8 7h10"></path><path d="M8 12h8"></path><path d="M8 17h10"></path><path d="M5 7h.01"></path><path d="M5 12h.01"></path><path d="M5 17h.01"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="nav.queue">Queue</div></div></div>
+          <div class="restore-card" onclick="triggerBackupUser()"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="5"></rect><path d="M12 8v8"></path><path d="M8 12h8"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="home.createBackup">Create Backup</div></div></div>
+          <div class="restore-card" onclick="showPage('downloads',null)"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v9"></path><path d="M8.5 11.5L12 15l3.5-3.5"></path><path d="M5 18h14"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="nav.downloads">Downloads</div></div></div>
+          <div class="restore-card" onclick="showPage('alerts',null)"><div class="restore-icon" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M18 9a6 6 0 0 0-12 0c0 6-2 7.5-2 7.5h16S18 15 18 9"></path><path d="M10.7 19a1.7 1.7 0 0 0 2.6 0"></path></svg></div><div class="restore-card-body"><div class="restore-label" data-i18n="nav.alerts">Alerts</div></div></div>
+        </div>
       </div>
     </div>
 
@@ -287,7 +665,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
     <div class="page" id="page-restore">
       <div class="section">
         <div class="section-header">
-          <div class="section-title" data-i18n="nav.restore">Restore & Download</div>
+          <div class="section-title" data-i18n="nav.restore">Restore</div>
           <button class="btn btn-ghost" onclick="loadUserBackups()">↻</button>
         </div>
         <div style="padding:0 20px; border-bottom:1px solid var(--border); display:flex; gap:4px; overflow-x:auto;">
@@ -298,9 +676,16 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
           <div id="tab-ssl" class="restore-tab-btn" onclick="setRestoreTab('ssl')" style="padding:12px 16px;font-size:13px;cursor:pointer;border-bottom:2px solid transparent;color:var(--text2);white-space:nowrap;" data-i18n="restore.ssl">Certificates</div>
         </div>
         <div id="restoreTable"><div class="loading">Loading...</div></div>
-        <div style="padding:14px 20px; display:flex; gap:8px;">
-          <button class="btn btn-primary" onclick="doRestore()" data-i18n="btn.restore">↺ Restore</button>
-          <button class="btn btn-ghost" onclick="doDownload()" data-i18n="btn.download">⬇ Download</button>
+        <div class="restore-helper" data-i18n="restore.helper">Download requests are prepared in Queue first and then appear in Downloads when ready.</div>
+        <div class="restore-actions">
+          <button class="btn btn-primary" onclick="confirmRestore()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><polyline points="23 4 23 10 17 10"></polyline><path d="M20.49 15a9 9 0 1 1-.08-4.89"></path></svg>
+            <span data-i18n="btn.restoreShort">Restore</span>
+          </button>
+          <button class="btn btn-ghost" onclick="doDownload()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 5v9"></path><path d="M8.5 11.5L12 15l3.5-3.5"></path><path d="M5 18h14"></path></svg>
+            <span data-i18n="btn.downloadShort">Download</span>
+          </button>
         </div>
       </div>
     </div>
@@ -312,6 +697,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
           <div class="section-title" data-i18n="nav.downloads">Downloads</div>
           <button class="btn btn-ghost" onclick="loadUserBackups()">↻</button>
         </div>
+        <div class="restore-helper" data-i18n="downloads.helper">Requested downloads are prepared here. Once ready, they stay listed until you retrieve them.</div>
         <div id="downloadsTable"><div class="loading">Loading...</div></div>
       </div>
     </div>
@@ -321,7 +707,18 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
       <div class="section">
         <div class="section-header">
           <div class="section-title" data-i18n="nav.alerts">Alerts</div>
-          <button class="btn btn-danger" onclick="markAlertsRead()" data-i18n="btn.clearAlerts">✕ Clear Alerts</button>
+          <div class="toolbar-group">
+            <button class="btn btn-ghost" onclick="loadUserAlerts()">↻</button>
+            <button class="btn btn-ghost" id="markSelectedAlertsBtn" onclick="markSelectedAlertsRead()" data-i18n="btn.markSelectedAlerts">Mark Selected As Read</button>
+            <button class="btn btn-danger" onclick="markAlertsRead()" data-i18n="btn.clearAlerts">Mark All As Read</button>
+          </div>
+        </div>
+        <div class="alert-controls">
+          <label class="toolbar-group">
+            <input class="select-checkbox" type="checkbox" id="selectAllAlerts" onchange="toggleAllAlerts(this.checked)">
+            <span class="toolbar-note" data-i18n="alerts.selectAll">Select all visible alerts</span>
+          </label>
+          <div class="toolbar-count" id="selectedAlertsCount">0 selected</div>
         </div>
         <div id="userAlertsTable"><div class="loading">Loading...</div></div>
       </div>
@@ -340,6 +737,29 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
           <div class="q-stat"><div class="q-stat-val" id="qDone">0</div><div class="q-stat-label" data-i18n="queue.done">Completed</div></div>
           <div class="q-stat"><div class="q-stat-val" id="qFailed">0</div><div class="q-stat-label" data-i18n="queue.failed">Failed</div></div>
         </div>
+        <div class="toolbar-stack">
+          <div class="toolbar-row">
+            <div class="toolbar-group">
+              <button class="filter-chip active" data-queue-filter="all" onclick="setQueueFilter('all', this)" data-i18n="queue.filter.all">All Jobs</button>
+              <button class="filter-chip" data-queue-filter="download-active" onclick="setQueueFilter('download-active', this)" data-i18n="queue.filter.downloadActive">Pending Downloads</button>
+              <button class="filter-chip" data-queue-filter="download-completed" onclick="setQueueFilter('download-completed', this)" data-i18n="queue.filter.downloadCompleted">Completed Downloads</button>
+              <button class="filter-chip" data-queue-filter="restore-active" onclick="setQueueFilter('restore-active', this)" data-i18n="queue.filter.restoreActive">Restore In Progress</button>
+              <button class="filter-chip" data-queue-filter="restore-completed" onclick="setQueueFilter('restore-completed', this)" data-i18n="queue.filter.restoreCompleted">Restore Completed</button>
+            </div>
+            <div class="toolbar-count" id="queueVisibleCount">0 visible jobs</div>
+          </div>
+          <div class="toolbar-row">
+            <label class="toolbar-group">
+              <input class="select-checkbox" type="checkbox" id="selectAllJobs" onchange="toggleAllJobs(this.checked)">
+              <span class="toolbar-note" data-i18n="queue.selectAll">Select all visible queued jobs</span>
+            </label>
+            <div class="toolbar-group">
+              <button class="btn btn-ghost" id="cancelSelectedJobsBtn" onclick="cancelSelectedJobs()" data-i18n="btn.cancelSelectedJobs">Cancel Selected</button>
+              <button class="btn btn-danger" onclick="cancelAllQueuedJobs()" data-i18n="btn.cancelAllQueued">Cancel All Pending</button>
+              <button class="btn btn-ghost" onclick="clearCompletedJobsView()" data-i18n="btn.clearCompletedJobs">Clear Completed</button>
+            </div>
+          </div>
+        </div>
         <div id="userJobsTable"><div class="loading">Loading...</div></div>
       </div>
     </div>
@@ -347,30 +767,76 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
 </div>
 
 <div class="nav-tooltip" id="navTooltip" aria-hidden="true"></div>
+<div class="modal-overlay" id="actionModal" aria-hidden="true">
+  <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="actionModalTitle">
+    <div class="modal-head">
+      <div class="modal-title" id="actionModalTitle">Confirm action</div>
+      <button class="modal-close" type="button" onclick="closeActionModal()" aria-label="Close dialog">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="modal-copy" id="actionModalCopy"></div>
+      <div class="modal-warning" id="actionModalWarning"></div>
+      <div class="modal-actions">
+        <button class="btn btn-ghost" type="button" onclick="closeActionModal()"><span data-i18n="btn.cancelShort">Cancel</span></button>
+        <button class="btn btn-primary" type="button" id="actionModalConfirm" onclick="confirmActionModal()"></button>
+      </div>
+    </div>
+  </div>
+</div>
 
 <script>
 const i18n = {
   en: {
-    'nav.home':'Home','nav.restore':'Restore & Download','nav.downloads':'Downloads',
+    'nav.home':'Home','nav.restore':'Restore','nav.downloads':'Downloads',
     'nav.alerts':'Alerts','nav.queue':'Queue','theme.toggle':'Theme',
-    'home.restoreTitle':'Restore & Download','home.manageTitle':'View & Manage',
+    'home.restoreTitle':'Restore','home.manageTitle':'View & Manage',
+    'home.restoreSourcesTitle':'Restore Sources','home.restoreSourcesCopy':'Pick the part of your hosting account you want to recover from protected backups.',
+    'home.operationsTitle':'Operations & Monitoring','home.operationsCopy':'Manage backup activity, review job progress, and follow important account events.',
     'home.createBackup':'Create Backup On Demand',
     'restore.full':'Full Backups','restore.homedir':'Home Directory',
     'restore.db':'Databases','restore.mail':'Email Accounts','restore.ssl':'Certificates',
-    'btn.restore':'Queue Restore','btn.download':'Queue Download','btn.clearAlerts':'Mark All As Read',
+    'restore.helper':'Choose a backup source, then restore it or send a download request to the Downloads section.',
+    'downloads.helper':'Requested downloads are prepared here. Once ready, they stay listed until you retrieve them.',
+    'btn.restore':'Queue Restore','btn.download':'Queue Download','btn.restoreShort':'Restore','btn.downloadShort':'Download','btn.clearAlerts':'Mark All As Read','btn.cancelShort':'Cancel',
+    'btn.markSelectedAlerts':'Mark Selected As Read','btn.cancelSelectedJobs':'Cancel Selected','btn.cancelAllQueued':'Cancel All Pending','btn.clearCompletedJobs':'Clear Completed',
+    'modal.restoreTitle':'Confirm restore','modal.restoreCopy':'You are about to restore this backup over the current account content.',
+    'modal.restoreWarning':'This can overwrite files, data, mailboxes, or certificates depending on the source you selected. Continue only if you are sure.',
+    'modal.restoreConfirm':'Start restore',
     'queue.pending':'Pending','queue.running':'Processing','queue.done':'Completed','queue.failed':'Failed/Canceled',
+    'queue.filter.all':'All Jobs','queue.filter.downloadActive':'Pending Downloads','queue.filter.downloadCompleted':'Completed Downloads','queue.filter.restoreActive':'Restore In Progress','queue.filter.restoreCompleted':'Restore Completed',
+    'queue.selectAll':'Select all visible queued jobs',
+    'alerts.selectAll':'Select all visible alerts',
     'stat.backups':'Total Backups','stat.alerts':'Unread Alerts','stat.usage':'Plan',
+    'stat.plan':'Current Plan','stat.storage':'Protected Storage','stat.used':'Used',
+    'stat.available':'Available','stat.lastBackup':'Last Backup','stat.protection':'Protection Status',
+    'protection.protected':'Protected','protection.attention':'Attention','protection.stale':'Stale','protection.unprotected':'Unprotected',
+    'plan.basic':'Basic','plan.pro':'Pro','plan.business':'Business','plan.enterprise':'Enterprise','plan.custom':'Custom',
   },
   es: {
-    'nav.home':'Inicio','nav.restore':'Restaurar y Descargar','nav.downloads':'Descargas',
+    'nav.home':'Inicio','nav.restore':'Restaurar','nav.downloads':'Descargas',
     'nav.alerts':'Alertas','nav.queue':'Cola','theme.toggle':'Tema',
-    'home.restoreTitle':'Restaurar y Descargar','home.manageTitle':'Ver y Gestionar',
+    'home.restoreTitle':'Restaurar','home.manageTitle':'Ver y Gestionar',
+    'home.restoreSourcesTitle':'Fuentes de Restauracion','home.restoreSourcesCopy':'Elige la parte de tu cuenta de hosting que quieres recuperar desde tus respaldos protegidos.',
+    'home.operationsTitle':'Operacion y Monitoreo','home.operationsCopy':'Gestiona la actividad de respaldos, revisa el avance de los jobs y sigue los eventos importantes de tu cuenta.',
     'home.createBackup':'Crear Respaldo Ahora',
     'restore.full':'Respaldo Completo','restore.homedir':'Directorio de Inicio',
     'restore.db':'Bases de Datos','restore.mail':'Cuentas de Correo','restore.ssl':'Certificados',
-    'btn.restore':'Encolar Restauracion','btn.download':'Encolar Descarga','btn.clearAlerts':'Marcar Todo Como Leido',
+    'restore.helper':'Elige un origen de respaldo y luego restauralo o envia una solicitud de descarga a la seccion de Descargas.',
+    'downloads.helper':'Las descargas solicitadas se preparan aqui. Cuando esten listas, seguiran disponibles hasta que las descargues.',
+    'btn.restore':'Encolar Restauracion','btn.download':'Encolar Descarga','btn.restoreShort':'Restaurar','btn.downloadShort':'Descargar','btn.clearAlerts':'Marcar Todo Como Leido','btn.cancelShort':'Cancelar',
+    'btn.markSelectedAlerts':'Marcar Seleccionadas Como Leidas','btn.cancelSelectedJobs':'Cancelar Seleccionados','btn.cancelAllQueued':'Cancelar Todo lo Pendiente','btn.clearCompletedJobs':'Limpiar Completados',
+    'modal.restoreTitle':'Confirmar restauracion','modal.restoreCopy':'Vas a restaurar este respaldo sobre el contenido actual de la cuenta.',
+    'modal.restoreWarning':'Esto puede sobrescribir archivos, datos, buzones o certificados segun el origen que hayas seleccionado. Continua solo si estas seguro.',
+    'modal.restoreConfirm':'Iniciar restauracion',
     'queue.pending':'Pendiente','queue.running':'Procesando','queue.done':'Completado','queue.failed':'Fallido/Cancelado',
+    'queue.filter.all':'Todos los Jobs','queue.filter.downloadActive':'Descargas Pendientes','queue.filter.downloadCompleted':'Descargas Completadas','queue.filter.restoreActive':'Restauracion en Progreso','queue.filter.restoreCompleted':'Restauracion Completada',
+    'queue.selectAll':'Seleccionar todos los jobs pendientes visibles',
+    'alerts.selectAll':'Seleccionar todas las alertas visibles',
     'stat.backups':'Total Respaldos','stat.alerts':'Alertas Nuevas','stat.usage':'Plan',
+    'stat.plan':'Plan Actual','stat.storage':'Almacenamiento Protegido','stat.used':'Usado',
+    'stat.available':'Disponible','stat.lastBackup':'Ultimo Respaldo','stat.protection':'Estado de Proteccion',
+    'protection.protected':'Protegido','protection.attention':'Atencion','protection.stale':'Desactualizado','protection.unprotected':'Sin Proteccion',
+    'plan.basic':'Basico','plan.pro':'Pro','plan.business':'Business','plan.enterprise':'Enterprise','plan.custom':'Personalizado',
   }
 };
 
@@ -378,10 +844,17 @@ let lang = localStorage.getItem('lang') || 'en';
 let cpanel_user = null;
 let accountInfo = null;
 let backups = [];
+let userJobs = [];
+let userAlerts = [];
 let selectedBackup = null;
 let currentTab = 'full';
 let currentPage = 'home';
+let queueFilter = 'all';
 let activeTooltipTarget = null;
+let actionModalHandler = null;
+let selectedJobIds = new Set();
+let selectedAlertIds = new Set();
+let hiddenCompletedJobIds = new Set();
 const sidebarStorageKey = 'bovedix-user-sidebar-collapsed';
 
 function t(key) {
@@ -403,6 +876,253 @@ function fmtDate(value) {
   return Number.isNaN(date.getTime()) ? '—' : date.toLocaleString();
 }
 
+function formatBytes(value) {
+  const bytes = Number(value) || 0;
+  if (bytes <= 0) return '0 GB';
+  const units = ['B', 'KB', 'MB', 'GB', 'TB'];
+  let size = bytes;
+  let unit = 0;
+  while (size >= 1024 && unit < units.length - 1) {
+    size /= 1024;
+    unit += 1;
+  }
+  const precision = size >= 100 || unit <= 2 ? 0 : 1;
+  return `${size.toFixed(precision)} ${units[unit]}`;
+}
+
+function capitalize(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}
+
+function getHiddenCompletedJobsStorageKey() {
+  return `bovedix-user-hidden-completed:${cpanel_user || 'guest'}`;
+}
+
+function loadHiddenCompletedJobs() {
+  try {
+    const raw = localStorage.getItem(getHiddenCompletedJobsStorageKey());
+    const parsed = raw ? JSON.parse(raw) : [];
+    hiddenCompletedJobIds = new Set(Array.isArray(parsed) ? parsed : []);
+  } catch (error) {
+    hiddenCompletedJobIds = new Set();
+  }
+}
+
+function persistHiddenCompletedJobs() {
+  localStorage.setItem(
+    getHiddenCompletedJobsStorageKey(),
+    JSON.stringify(Array.from(hiddenCompletedJobIds))
+  );
+}
+
+function parseJobPayload(job) {
+  if (!job?.payload) return {};
+  if (typeof job.payload === 'object') return job.payload;
+  try {
+    return JSON.parse(job.payload);
+  } catch (error) {
+    return {};
+  }
+}
+
+function isJobCompletedLike(job) {
+  return ['completed', 'failed', 'canceled'].includes(String(job?.status || '').toLowerCase());
+}
+
+function isJobQueuedLike(job) {
+  return String(job?.status || '').toLowerCase() === 'queued';
+}
+
+function estimatePreparationMinutes(bytes) {
+  const totalMb = Math.max(1, Math.round((Number(bytes) || 0) / 1024 / 1024));
+  return Math.max(1, Math.ceil(totalMb / 180));
+}
+
+function getDownloadJobForBackup(backupId) {
+  return userJobs
+    .filter((job) => {
+      const payload = parseJobPayload(job);
+      return job.type === 'download' && payload.backup_id === backupId;
+    })
+    .sort((left, right) => new Date(right.created_at) - new Date(left.created_at))[0] || null;
+}
+
+function getDownloadState(backup) {
+  const relatedJob = getDownloadJobForBackup(backup.id);
+  if (!relatedJob) {
+    return {
+      status: 'idle',
+      badgeClass: 'info',
+      badgeLabel: lang === 'es' ? 'Disponible' : 'Available',
+      copy: lang === 'es'
+        ? 'Solicita la descarga para preparar un archivo temporal.'
+        : 'Request a download to prepare a temporary file.',
+      progress: 0,
+      actionLabel: t('btn.downloadShort'),
+      actionDisabled: false
+    };
+  }
+
+  const estimatedMinutes = estimatePreparationMinutes(backup.filesize);
+
+  if (relatedJob.status === 'queued') {
+    return {
+      status: 'queued',
+      badgeClass: 'warning',
+      badgeLabel: lang === 'es' ? 'Preparando' : 'Preparing',
+      copy: lang === 'es'
+        ? `Preparando descarga. Tiempo estimado: ${estimatedMinutes} min.`
+        : `Preparing download. Estimated time: ${estimatedMinutes} min.`,
+      progress: 22,
+      actionLabel: lang === 'es' ? 'Preparando...' : 'Preparing...',
+      actionDisabled: true
+    };
+  }
+
+  if (relatedJob.status === 'running') {
+    return {
+      status: 'running',
+      badgeClass: 'info',
+      badgeLabel: lang === 'es' ? 'En proceso' : 'In progress',
+      copy: lang === 'es'
+        ? `Construyendo archivo temporal. Tiempo estimado: ${estimatedMinutes} min.`
+        : `Building temporary file. Estimated time: ${estimatedMinutes} min.`,
+      progress: 68,
+      actionLabel: lang === 'es' ? 'Procesando...' : 'Processing...',
+      actionDisabled: true
+    };
+  }
+
+  if (relatedJob.status === 'completed') {
+    return {
+      status: 'completed',
+      badgeClass: 'success',
+      badgeLabel: lang === 'es' ? 'Lista' : 'Ready',
+      copy: lang === 'es'
+        ? 'La descarga ya fue preparada y quedo lista para entrega.'
+        : 'The download was prepared and is ready for delivery.',
+      progress: 100,
+      actionLabel: lang === 'es' ? 'Lista' : 'Ready',
+      actionDisabled: true
+    };
+  }
+
+  return {
+    status: 'failed',
+    badgeClass: 'danger',
+    badgeLabel: lang === 'es' ? 'Reintentar' : 'Retry',
+    copy: lang === 'es'
+      ? 'La preparacion anterior no termino correctamente.'
+      : 'The previous preparation did not finish correctly.',
+    progress: 100,
+    actionLabel: t('btn.downloadShort'),
+    actionDisabled: false
+  };
+}
+
+function matchesQueueFilter(job) {
+  const status = String(job.status || '').toLowerCase();
+  if (hiddenCompletedJobIds.has(job.id) && isJobCompletedLike(job)) {
+    return false;
+  }
+
+  switch (queueFilter) {
+    case 'download-active':
+      return job.type === 'download' && ['queued', 'running'].includes(status);
+    case 'download-completed':
+      return job.type === 'download' && status === 'completed';
+    case 'restore-active':
+      return job.type === 'restore' && ['queued', 'running'].includes(status);
+    case 'restore-completed':
+      return job.type === 'restore' && status === 'completed';
+    default:
+      return true;
+  }
+}
+
+function getPlanProfile(plan) {
+  const normalized = String(plan || 'basic').toLowerCase();
+  const gib = 1024 ** 3;
+  const profiles = {
+    basic: { label: t('plan.basic'), quotaBytes: 100 * gib },
+    pro: { label: t('plan.pro'), quotaBytes: 500 * gib },
+    business: { label: t('plan.business'), quotaBytes: 500 * gib },
+    enterprise: { label: t('plan.enterprise'), quotaBytes: 1024 * gib },
+    custom: { label: t('plan.custom'), quotaBytes: 2048 * gib }
+  };
+  return profiles[normalized] || {
+    label: capitalize(normalized),
+    quotaBytes: 100 * gib
+  };
+}
+
+function getPlanTierClass(plan) {
+  const normalized = String(plan || 'basic').toLowerCase();
+  if (normalized === 'pro') return 'plan-tier-pro';
+  if (normalized === 'business') return 'plan-tier-business';
+  if (normalized === 'enterprise') return 'plan-tier-enterprise';
+  if (normalized === 'custom') return 'plan-tier-custom';
+  return 'plan-tier-basic';
+}
+
+function getPlanTone(plan) {
+  const normalized = String(plan || 'basic').toLowerCase();
+  if (normalized === 'pro') return '#E8BE57';
+  if (normalized === 'business') return '#68D3FF';
+  if (normalized === 'enterprise') return '#B78CFF';
+  if (normalized === 'custom') return '#CDA9FF';
+  return '#C8CFDA';
+}
+
+function resolveQuotaBytes(account, planProfile) {
+  const numericQuota = Number(
+    account?.storage_quota_bytes ??
+    account?.quota_bytes ??
+    account?.plan_storage_bytes ??
+    0
+  );
+  return numericQuota > 0 ? numericQuota : planProfile.quotaBytes;
+}
+
+function resolveUsedBytes(account, backupItems) {
+  const explicitUsed = Number(account?.storage_used_bytes ?? account?.used_bytes ?? 0);
+  if (explicitUsed > 0) return explicitUsed;
+  return backupItems.reduce((total, backup) => total + (Number(backup.filesize) || 0), 0);
+}
+
+function getStorageAngle(usedBytes, quotaBytes) {
+  if (!quotaBytes) return '0deg';
+  const ratio = Math.max(0, Math.min(usedBytes / quotaBytes, 1));
+  return `${Math.round(ratio * 360)}deg`;
+}
+
+function getStoragePercent(usedBytes, quotaBytes) {
+  if (!quotaBytes) return 0;
+  return Math.round(Math.max(0, Math.min(usedBytes / quotaBytes, 1)) * 100);
+}
+
+function getProtectionStatus(totalBackups, unreadAlerts, lastBackupAt) {
+  if (!totalBackups) {
+    return { label: t('protection.unprotected'), tone: 'red' };
+  }
+  if (unreadAlerts > 0) {
+    return { label: t('protection.attention'), tone: 'red' };
+  }
+  if (!lastBackupAt) {
+    return { label: t('protection.attention'), tone: 'red' };
+  }
+
+  const ageMs = Date.now() - new Date(lastBackupAt).getTime();
+  const ageDays = ageMs / (1000 * 60 * 60 * 24);
+  if (Number.isFinite(ageDays) && ageDays > 14) {
+    return { label: t('protection.stale'), tone: 'red' };
+  }
+
+  return { label: t('protection.protected'), tone: 'green' };
+}
+
 function badgeClass(level) {
   if (level === 'completed' || level === 'active' || level === 'ready') return 'success';
   if (level === 'running' || level === 'queued' || level === 'info') return 'info';
@@ -422,6 +1142,10 @@ function setLang(l) {
   });
   document.getElementById('pageTitle').textContent = t('nav.' + currentPage);
   syncNavTooltips();
+  if (currentPage === 'home') loadUserStats();
+  if (currentPage === 'downloads' && backups.length) renderDownloads();
+  if (currentPage === 'alerts' && userAlerts.length) renderUserAlerts();
+  if (currentPage === 'queue' && userJobs.length) renderUserJobs();
 }
 
 function toggleTheme() {
@@ -475,6 +1199,32 @@ function hideNavTooltip() {
   tooltip.classList.remove('visible');
   tooltip.style.transform = 'translate3d(-9999px, -9999px, 0)';
   activeTooltipTarget = null;
+}
+
+function closeActionModal() {
+  const overlay = document.getElementById('actionModal');
+  overlay.classList.remove('visible');
+  overlay.setAttribute('aria-hidden', 'true');
+  actionModalHandler = null;
+}
+
+function openActionModal({ title, copy, warning, confirmLabel, onConfirm }) {
+  document.getElementById('actionModalTitle').textContent = title;
+  document.getElementById('actionModalCopy').textContent = copy;
+  document.getElementById('actionModalWarning').textContent = warning;
+  const confirmButton = document.getElementById('actionModalConfirm');
+  confirmButton.textContent = confirmLabel;
+  actionModalHandler = onConfirm;
+  const overlay = document.getElementById('actionModal');
+  overlay.classList.add('visible');
+  overlay.setAttribute('aria-hidden', 'false');
+}
+
+async function confirmActionModal() {
+  if (!actionModalHandler) return;
+  const handler = actionModalHandler;
+  closeActionModal();
+  await handler();
 }
 
 function bindNavTooltipEvents() {
@@ -583,7 +1333,11 @@ function showPage(page, el) {
   currentPage = page;
   document.getElementById('pageTitle').textContent = t('nav.' + page);
   if (page === 'home') loadUserStats();
-  if (page === 'restore' || page === 'downloads') loadUserBackups();
+  if (page === 'restore') loadUserBackups();
+  if (page === 'downloads') {
+    loadUserJobs();
+    loadUserBackups();
+  }
   if (page === 'alerts') loadUserAlerts();
   if (page === 'queue') loadUserJobs();
 }
@@ -608,14 +1362,103 @@ async function loadUserStats() {
   if (!cpanel_user) return;
 
   try {
-    const stats = await api('/api/accounts/me/status');
-    const alerts = await api('/api/jobs/alerts/me');
-    const unread = Array.isArray(alerts) ? alerts.filter((alert) => !alert.read).length : 0;
+    const [statsResult, alertsResult, backupsResult] = await Promise.allSettled([
+      api('/api/accounts/me/status'),
+      api('/api/jobs/alerts/me'),
+      api('/api/backups/me')
+    ]);
+
+    if (statsResult.status !== 'fulfilled') {
+      throw statsResult.reason;
+    }
+
+    const stats = statsResult.value;
+    const alerts = alertsResult.status === 'fulfilled' && Array.isArray(alertsResult.value)
+      ? alertsResult.value
+      : [];
+    const backupItems = backupsResult.status === 'fulfilled' && Array.isArray(backupsResult.value)
+      ? backupsResult.value
+      : [];
+    const unread = alerts.filter((alert) => !alert.read).length;
     accountInfo = stats.account;
+    backups = backupItems;
+
+    const storage = stats.storage || {};
+    const planProfile = getPlanProfile(storage.plan_key || stats.account?.plan);
+    const quotaBytes = Number(storage.quota_bytes) > 0
+      ? Number(storage.quota_bytes)
+      : resolveQuotaBytes(stats.account, planProfile);
+    const usedBytes = Number(storage.used_bytes) >= 0
+      ? Number(storage.used_bytes)
+      : resolveUsedBytes(stats.account, backupItems);
+    const availableBytes = Number(storage.available_bytes) >= 0
+      ? Number(storage.available_bytes)
+      : Math.max(quotaBytes - Math.min(usedBytes, quotaBytes), 0);
+    const usagePercent = Number(storage.usage_percent) >= 0
+      ? Number(storage.usage_percent)
+      : getStoragePercent(usedBytes, quotaBytes);
+    const totalBackups = Number(stats.totalBackups) || 0;
+    const lastBackupAt = stats.lastBackup?.created_at || backupItems[0]?.created_at;
+    const protection = getProtectionStatus(totalBackups, unread, lastBackupAt);
+    const planKey = storage.plan_key || stats.account?.plan;
+    const planLabel = storage.plan_label || planProfile.label;
+    const planTierClass = getPlanTierClass(planKey);
+    const planTone = getPlanTone(planKey);
+
     document.getElementById('userStats').innerHTML = `
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${unread}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${h(stats.account?.plan || 'basic')}</div><div class="stat-label">${t('stat.usage')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div></div>
+      <div class="storage-card ${planTierClass}" style="--plan-tone:${planTone};">
+        <div class="storage-copy">
+          <div class="storage-head">
+            <div>
+              <div class="storage-eyebrow">${t('stat.plan')}</div>
+              <div class="storage-plan ${planTierClass}">${h(planLabel)}</div>
+            </div>
+            <div class="storage-pill"><strong>${usagePercent}%</strong> ${t('stat.used').toLowerCase()}</div>
+          </div>
+          <div class="storage-usage-copy">${t('stat.storage')}: <strong>${formatBytes(usedBytes)} / ${formatBytes(quotaBytes)}</strong> ${t('stat.used').toLowerCase()}</div>
+          <div class="storage-meter"><div class="storage-meter-fill" style="width:${usagePercent}%"></div></div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value">${totalBackups}</div>
+          <div class="stat-label">${t('stat.backups')}</div>
+          <div class="stat-sub">${t('stat.lastBackup')}: ${fmtDate(lastBackupAt)}</div>
+        </div>
+        <div class="stat-icon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <ellipse cx="12" cy="5" rx="9" ry="3"></ellipse>
+            <path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"></path>
+            <path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value">${unread}</div>
+          <div class="stat-label">${t('stat.alerts')}</div>
+          <div class="stat-sub">${stats.queuedJobs || 0} ${t('queue.pending').toLowerCase()}</div>
+        </div>
+        <div class="stat-icon red">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"></path>
+          </svg>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-info">
+          <div class="stat-value is-text">${h(protection.label)}</div>
+          <div class="stat-label">${t('stat.protection')}</div>
+          <div class="stat-sub">${t('stat.available')}: ${formatBytes(availableBytes)}</div>
+        </div>
+        <div class="stat-icon ${protection.tone === 'green' ? 'green' : 'red'}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 3l7 3.8v5.5c0 4.8-2.8 7.9-7 9.7-4.2-1.8-7-4.9-7-9.7V6.8L12 3z"></path>
+            <path d="M9.5 12l1.7 1.7L14.8 10"></path>
+          </svg>
+        </div>
+      </div>
     `;
   } catch (error) {
     document.getElementById('userStats').innerHTML = `<div class="loading">${h(error.message || 'Error loading stats')}</div>`;
@@ -652,14 +1495,28 @@ function renderRestoreTable() {
 
 function renderDownloads() {
   document.getElementById('downloadsTable').innerHTML = backups.length ? `
-    <table><thead><tr><th>Created</th><th>Type</th><th>Account</th><th>Size</th><th>Path</th><th></th></tr></thead>
+    <table><thead><tr><th>Created</th><th>Type</th><th>Account</th><th>Size</th><th>Status</th><th>Path</th><th></th></tr></thead>
     <tbody>${backups.map((backup) => `<tr>
       <td>${fmtDate(backup.created_at)}</td>
       <td><span class="badge badge-info">${h(backup.kind || 'full')}</span></td>
       <td>${h(cpanel_user)}<br><span style="color:var(--text3);font-size:11px;">ID: ${h(backup.id.substring(0, 8))}</span></td>
       <td>${backup.filesize ? `${(backup.filesize / 1024 / 1024).toFixed(2)} MB` : '—'}</td>
+      <td>${(() => {
+        const downloadState = getDownloadState(backup);
+        return `
+          <div class="download-status">
+            <span class="badge badge-${downloadState.badgeClass}">${h(downloadState.badgeLabel)}</span>
+            <div class="download-status-copy">${h(downloadState.copy)}</div>
+            <div class="mini-progress"><span style="width:${downloadState.progress}%"></span></div>
+          </div>
+        `;
+      })()}</td>
       <td><span style="color:var(--text3);font-size:12px;">${h(backup.remote_path || 'Pending path')}</span></td>
-      <td><button class="btn btn-primary" style="font-size:12px;padding:5px 12px;" onclick="doDownload('${backup.id}')">⬇ Download</button></td>
+      <td>${(() => {
+        const downloadState = getDownloadState(backup);
+        const variantClass = downloadState.actionDisabled ? 'btn btn-ghost' : 'btn btn-primary';
+        return `<button class="${variantClass}" style="font-size:12px;padding:5px 12px;" onclick="doDownload('${backup.id}')" ${downloadState.actionDisabled ? 'disabled' : ''}>${h(downloadState.actionLabel)}</button>`;
+      })()}</td>
     </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No downloads</div>';
 }
 
@@ -673,7 +1530,7 @@ function selectBackup(id, row) {
   }
 }
 
-async function doRestore() {
+async function queueRestore() {
   if (!selectedBackup) return;
 
   try {
@@ -685,13 +1542,25 @@ async function doRestore() {
   }
 }
 
+function confirmRestore() {
+  if (!selectedBackup) return;
+
+  openActionModal({
+    title: t('modal.restoreTitle'),
+    copy: t('modal.restoreCopy'),
+    warning: t('modal.restoreWarning'),
+    confirmLabel: t('modal.restoreConfirm'),
+    onConfirm: queueRestore
+  });
+}
+
 async function doDownload(backupId = selectedBackup) {
   if (!backupId) return;
 
   try {
     await api(`/api/backups/${backupId}/download`, { method: 'POST' });
-    showPage('queue', null);
-    await loadUserJobs();
+    showPage('downloads', null);
+    await Promise.all([loadUserJobs(), loadUserBackups()]);
   } catch (error) {
     alert(error.message || 'Could not queue download');
   }
@@ -701,23 +1570,89 @@ async function loadUserAlerts() {
   if (!cpanel_user) return;
 
   try {
-    const alerts = await api('/api/jobs/alerts/me');
-    document.getElementById('userAlertsTable').innerHTML = alerts.length ? alerts.map((alert) => `
-      <div class="alert-item">
-        <div class="alert-dot" style="background:${alert.level === 'warning' ? 'var(--warning)' : alert.level === 'info' ? 'var(--info)' : 'var(--danger)'}"></div>
-        <div><div class="alert-title">${h(alert.title)}</div><div class="alert-time">${fmtDate(alert.created_at)}</div><div class="alert-msg">${h(alert.message || '')}</div></div>
-        <span class="badge badge-${badgeClass(alert.level)}">${h(alert.level)}</span>
-      </div>`).join('') : '<div class="empty-state">No alerts</div>';
+    userAlerts = (await api('/api/jobs/alerts/me')).filter((alert) => !alert.read);
+    selectedAlertIds.forEach((id) => {
+      if (!userAlerts.some((alert) => alert.id === id)) {
+        selectedAlertIds.delete(id);
+      }
+    });
+    renderUserAlerts();
   } catch (error) {
     document.getElementById('userAlertsTable').innerHTML = `<div class="loading">${h(error.message || 'Error')}</div>`;
   }
 }
 
+function renderUserAlerts() {
+  const selectedCount = selectedAlertIds.size;
+  const selectAllAlerts = document.getElementById('selectAllAlerts');
+  const selectedAlertsCount = document.getElementById('selectedAlertsCount');
+  const selectedAlertsButton = document.getElementById('markSelectedAlertsBtn');
+
+  if (selectedAlertsCount) {
+    selectedAlertsCount.textContent = lang === 'es'
+      ? `${selectedCount} seleccionadas`
+      : `${selectedCount} selected`;
+  }
+  if (selectedAlertsButton) {
+    selectedAlertsButton.disabled = selectedCount === 0;
+  }
+  if (selectAllAlerts) {
+    selectAllAlerts.checked = !!userAlerts.length && userAlerts.every((alert) => selectedAlertIds.has(alert.id));
+  }
+
+  document.getElementById('userAlertsTable').innerHTML = userAlerts.length ? userAlerts.map((alert) => `
+    <div class="alert-item">
+      <input class="select-checkbox" type="checkbox" ${selectedAlertIds.has(alert.id) ? 'checked' : ''} onchange="toggleAlertSelection('${alert.id}', this.checked)">
+      <div class="alert-dot" style="background:${alert.level === 'warning' ? 'var(--warning)' : alert.level === 'info' ? 'var(--info)' : 'var(--danger)'}"></div>
+      <div class="alert-main">
+        <div class="alert-title">${h(alert.title)}</div>
+        <div class="alert-time">${fmtDate(alert.created_at)}</div>
+        <div class="alert-msg">${h(alert.message || '')}</div>
+      </div>
+      <span class="badge badge-${badgeClass(alert.level)}">${h(alert.level)}</span>
+    </div>`).join('') : '<div class="empty-state">No alerts</div>';
+}
+
 async function markAlertsRead() {
   try {
     await api('/api/jobs/alerts/me/read-all', { method: 'POST' });
+    selectedAlertIds.clear();
     loadUserAlerts();
     loadUserStats();
+  } catch (error) {
+    alert(error.message || 'Could not update alerts');
+  }
+}
+
+function toggleAlertSelection(id, checked) {
+  if (checked) {
+    selectedAlertIds.add(id);
+  } else {
+    selectedAlertIds.delete(id);
+  }
+  renderUserAlerts();
+}
+
+function toggleAllAlerts(checked) {
+  if (checked) {
+    userAlerts.forEach((alert) => selectedAlertIds.add(alert.id));
+  } else {
+    selectedAlertIds.clear();
+  }
+  renderUserAlerts();
+}
+
+async function markSelectedAlertsRead() {
+  const ids = Array.from(selectedAlertIds);
+  if (!ids.length) return;
+
+  try {
+    await api('/api/jobs/alerts/me/read-selected', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
+    });
+    selectedAlertIds.clear();
+    await Promise.all([loadUserAlerts(), loadUserStats()]);
   } catch (error) {
     alert(error.message || 'Could not update alerts');
   }
@@ -727,26 +1662,151 @@ async function loadUserJobs() {
   if (!cpanel_user) return;
 
   try {
-    const jobs = await api('/api/jobs/me');
-    const pending = jobs.filter((job) => job.status === 'queued').length;
-    const running = jobs.filter((job) => job.status === 'running').length;
-    const done = jobs.filter((job) => job.status === 'completed').length;
-    const failed = jobs.filter((job) => job.status === 'failed').length;
+    userJobs = await api('/api/jobs/me');
+    const pending = userJobs.filter((job) => job.status === 'queued').length;
+    const running = userJobs.filter((job) => job.status === 'running').length;
+    const done = userJobs.filter((job) => job.status === 'completed').length;
+    const failed = userJobs.filter((job) => ['failed', 'canceled'].includes(job.status)).length;
     document.getElementById('qPending').textContent = pending;
     document.getElementById('qRunning').textContent = running;
     document.getElementById('qDone').textContent = done;
     document.getElementById('qFailed').textContent = failed;
-    document.getElementById('userJobsTable').innerHTML = jobs.length ? `
-      <table><thead><tr><th>Type</th><th>Status</th><th>Started</th><th>Result</th></tr></thead>
-      <tbody>${jobs.map((job) => `<tr>
-        <td>${h(job.type)}</td>
-        <td><span class="badge badge-${badgeClass(job.status)}"><span class="badge-dot"></span>${h(job.status)}</span></td>
-        <td style="font-size:12px;color:var(--text3);">${fmtDate(job.started_at || job.created_at)}</td>
-        <td style="font-size:12px;color:var(--text3);">${job.ended_at ? fmtDate(job.ended_at) : 'In progress'}</td>
-      </tr>`).join('')}</tbody></table>` : '<div class="empty-state">No queue items</div>';
+    renderUserJobs();
+    renderDownloads();
   } catch (error) {
     document.getElementById('userJobsTable').innerHTML = `<div class="loading">${h(error.message || 'Error')}</div>`;
   }
+}
+
+function renderUserJobs() {
+  const visibleJobs = userJobs.filter(matchesQueueFilter);
+  const visibleQueuedJobs = visibleJobs.filter((job) => isJobQueuedLike(job));
+  const selectAllJobs = document.getElementById('selectAllJobs');
+  const visibleCount = document.getElementById('queueVisibleCount');
+  const cancelSelectedJobsBtn = document.getElementById('cancelSelectedJobsBtn');
+
+  if (visibleCount) {
+    visibleCount.textContent = lang === 'es'
+      ? `${visibleJobs.length} jobs visibles`
+      : `${visibleJobs.length} visible jobs`;
+  }
+
+  if (selectAllJobs) {
+    selectAllJobs.checked = !!visibleQueuedJobs.length && visibleQueuedJobs.every((job) => selectedJobIds.has(job.id));
+  }
+
+  if (cancelSelectedJobsBtn) {
+    cancelSelectedJobsBtn.disabled = selectedJobIds.size === 0;
+  }
+
+  document.getElementById('userJobsTable').innerHTML = visibleJobs.length ? `
+    <table><thead><tr><th class="select-col"></th><th>Type</th><th>Status</th><th>Created</th><th>Details</th><th></th></tr></thead>
+    <tbody>${visibleJobs.map((job) => {
+      const payload = parseJobPayload(job);
+      const canCancel = isJobQueuedLike(job);
+      const detailText = payload.filename || payload.remote_path || payload.cpanel_user || '—';
+      return `<tr>
+        <td class="select-col"><input class="select-checkbox" type="checkbox" ${selectedJobIds.has(job.id) ? 'checked' : ''} ${canCancel ? '' : 'disabled'} onchange="toggleJobSelection('${job.id}', this.checked)"></td>
+        <td>
+          <div class="job-meta">
+            <div>${h(job.type)}</div>
+            <div class="job-submeta">${h(job.requested_by || cpanel_user || '')}</div>
+          </div>
+        </td>
+        <td><span class="badge badge-${badgeClass(job.status)}"><span class="badge-dot"></span>${h(job.status)}</span></td>
+        <td style="font-size:12px;color:var(--text3);">${fmtDate(job.started_at || job.created_at)}</td>
+        <td>
+          <div class="job-meta">
+            <div>${h(detailText)}</div>
+            <div class="job-submeta">${job.ended_at ? fmtDate(job.ended_at) : (lang === 'es' ? 'En progreso' : 'In progress')}</div>
+          </div>
+        </td>
+        <td>
+          <div class="job-actions">
+            ${canCancel ? `<button class="btn btn-ghost" style="font-size:12px;padding:5px 12px;" onclick="cancelQueuedJob('${job.id}')">${lang === 'es' ? 'Cancelar' : 'Cancel'}</button>` : ''}
+          </div>
+        </td>
+      </tr>`;
+    }).join('')}</tbody></table>` : '<div class="empty-state">No queue items</div>';
+}
+
+function setQueueFilter(value, button = null) {
+  queueFilter = value;
+  document.querySelectorAll('[data-queue-filter]').forEach((chip) => {
+    chip.classList.toggle('active', chip.getAttribute('data-queue-filter') === value);
+  });
+  if (button) {
+    button.classList.add('active');
+  }
+  selectedJobIds.clear();
+  renderUserJobs();
+}
+
+function toggleJobSelection(id, checked) {
+  if (checked) {
+    selectedJobIds.add(id);
+  } else {
+    selectedJobIds.delete(id);
+  }
+  renderUserJobs();
+}
+
+function toggleAllJobs(checked) {
+  const visibleQueuedJobs = userJobs.filter(matchesQueueFilter).filter((job) => isJobQueuedLike(job));
+  if (checked) {
+    visibleQueuedJobs.forEach((job) => selectedJobIds.add(job.id));
+  } else {
+    visibleQueuedJobs.forEach((job) => selectedJobIds.delete(job.id));
+  }
+  renderUserJobs();
+}
+
+async function cancelQueuedJob(jobId) {
+  try {
+    await api('/api/jobs/me/cancel-selected', {
+      method: 'POST',
+      body: JSON.stringify({ ids: [jobId] })
+    });
+    selectedJobIds.delete(jobId);
+    await loadUserJobs();
+  } catch (error) {
+    alert(error.message || 'Could not cancel job');
+  }
+}
+
+async function cancelSelectedJobs() {
+  const ids = Array.from(selectedJobIds);
+  if (!ids.length) return;
+
+  try {
+    await api('/api/jobs/me/cancel-selected', {
+      method: 'POST',
+      body: JSON.stringify({ ids })
+    });
+    selectedJobIds.clear();
+    await loadUserJobs();
+  } catch (error) {
+    alert(error.message || 'Could not cancel selected jobs');
+  }
+}
+
+async function cancelAllQueuedJobs() {
+  try {
+    await api('/api/jobs/me/cancel-all-queued', { method: 'POST' });
+    selectedJobIds.clear();
+    await loadUserJobs();
+  } catch (error) {
+    alert(error.message || 'Could not cancel pending jobs');
+  }
+}
+
+function clearCompletedJobsView() {
+  userJobs
+    .filter((job) => isJobCompletedLike(job))
+    .forEach((job) => hiddenCompletedJobIds.add(job.id));
+  persistHiddenCompletedJobs();
+  selectedJobIds.clear();
+  renderUserJobs();
 }
 
 async function triggerBackupUser() {
@@ -773,6 +1833,7 @@ async function bootstrap() {
 
     cpanel_user = session.user.account?.cpanel_user || session.user.cpanel_user;
     accountInfo = session.user.account || null;
+    loadHiddenCompletedJobs();
     document.getElementById('userDisplay').textContent = cpanel_user + (accountInfo?.domain ? ' — ' + accountInfo.domain : '');
     await loadUserStats();
   } catch (error) {

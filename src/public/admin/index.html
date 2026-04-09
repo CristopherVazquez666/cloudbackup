@@ -305,7 +305,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
   height:100%; border-radius:999px; background:var(--grad);
 }
 .node-subtle { font-size:12px; color:var(--text3); }
-.nodes-layout { display:grid; gap:20px; }
+.nodes-layout { display:grid; gap:28px; }
 .nodes-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
 .node-card {
   background:var(--bg2); border:1px solid var(--border); border-radius:16px;
@@ -494,7 +494,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
           </button>
         </div>
         <div id="nodesSummary" style="padding:20px 24px 0;"></div>
-        <div id="nodesTable"><div class="loading">Loading...</div></div>
+        <div id="nodesTable" style="padding:12px 24px 24px;"><div class="loading">Loading...</div></div>
       </div>
     </div>
 
@@ -518,7 +518,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
             <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.cpanelUser">cPanel User</label><input id="newUser" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;" placeholder="username"></div>
             <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.domain">Domain</label><input id="newDomain" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;" placeholder="example.com"></div>
             <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.server">Server</label><select id="newServer" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;"><option value="">Loading...</option></select></div>
-            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.plan">Plan</label><select id="newPlan" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;"><option value="basic">Basic</option><option value="pro">Pro</option><option value="enterprise">Enterprise</option></select></div>
+            <div><label style="font-size:12px;color:var(--text2);display:block;margin-bottom:4px;" data-i18n="form.plan">Plan</label><select id="newPlan" style="width:100%;background:var(--bg2);border:1px solid var(--border);border-radius:8px;padding:9px 12px;color:var(--text);font-size:14px;outline:none;"><option value="">Loading...</option></select></div>
             <button class="btn btn-primary" onclick="activateAccount()" data-i18n="btn.activate">Activate</button>
           </div>
           <div id="activateMsg" style="margin-top:10px;font-size:13px;"></div>
@@ -663,6 +663,7 @@ let currentPage = 'dashboard';
 let currentAdmin = null;
 let serverCache = [];
 let nodeCache = [];
+let planCatalogCache = [];
 let activeTooltipTarget = null;
 const sidebarStorageKey = 'bovedix-admin-sidebar-collapsed';
 
@@ -706,17 +707,17 @@ function deriveNodeDefinitions() {
   return [
     { id: 'node-shared-entry', name: 'Node 01', roleKey: 'nodes.role.entry', plans: ['Tell It', 'Basic'], capacityGiB: 2048, status: 'active' },
     { id: 'node-shared-growth', name: 'Node 02', roleKey: 'nodes.role.growth', plans: ['Sell It', 'Pro'], capacityGiB: 3072, status: 'active' },
-    { id: 'node-shared-premium', name: 'Node 03', roleKey: 'nodes.role.premium', plans: ['Max It', 'Push It', 'Enterprise'], capacityGiB: 4096, status: 'active' },
+    { id: 'node-shared-premium', name: 'Node 03', roleKey: 'nodes.role.premium', plans: ['Push It', 'Max It', 'Business', 'Enterprise'], capacityGiB: 4096, status: 'active' },
     { id: 'node-vps-core', name: 'Node 04', roleKey: 'nodes.role.vps', plans: ['VPS'], capacityGiB: 6144, status: 'active' }
   ];
 }
 
 function inferNodeId(server, account) {
   const serverText = `${server?.slug || ''} ${server?.name || ''} ${server?.cpanel_host || ''}`.toLowerCase();
-  const planText = `${account?.plan || ''}`.toLowerCase();
+  const planText = `${account?.plan_key || account?.plan || ''}`.toLowerCase();
 
   if (serverText.includes('vps') || planText.includes('vps')) return 'node-vps-core';
-  if (planText.includes('enterprise') || planText.includes('push') || planText.includes('max')) return 'node-shared-premium';
+  if (planText.includes('enterprise') || planText.includes('business') || planText.includes('push') || planText.includes('max')) return 'node-shared-premium';
   if (planText.includes('pro') || planText.includes('sell')) return 'node-shared-growth';
   return 'node-shared-entry';
 }
@@ -1077,6 +1078,26 @@ function renderServerOptions() {
     .join('');
 }
 
+function renderPlanOptions() {
+  const select = document.getElementById('newPlan');
+  if (!select) return;
+
+  if (!planCatalogCache.length) {
+    select.innerHTML = '<option value="">No plans</option>';
+    return;
+  }
+
+  select.innerHTML = planCatalogCache
+    .map((plan) => `<option value="${h(plan.key)}">${h(plan.label)} — ${h(String(plan.storage_gb))} GB</option>`)
+    .join('');
+}
+
+async function loadPlanCatalog() {
+  const plans = await api('/api/accounts/plans');
+  planCatalogCache = Array.isArray(plans) ? plans : [];
+  renderPlanOptions();
+}
+
 async function loadNodes() {
   try {
     const nodes = await fetchNodeSnapshot();
@@ -1139,7 +1160,7 @@ async function loadAccounts() {
         <td><strong>${h(account.cpanel_user)}</strong></td>
         <td>${h(account.domain)}</td>
         <td><span style="font-size:12px;color:var(--text3);">${h(account.server_name || account.server_slug || '—')}</span></td>
-        <td><span class="badge badge-info">${h(account.plan)}</span></td>
+        <td><span class="badge badge-info">${h(account.plan_label || account.plan)}</span><div style="font-size:12px;color:var(--text3);margin-top:4px;">${h(String(account.plan_storage_gb || '—'))} GB</div></td>
         <td>${account.totalBackups}</td>
         <td>${account.activeJobs}</td>
         <td><span class="badge badge-${badgeClass(account.status)}">${h(account.status)}</span></td>
@@ -1209,11 +1230,16 @@ async function loadAlerts() {
   }
 }
 
-function showActivateForm() {
+async function showActivateForm() {
   const form = document.getElementById('accountsActivateForm');
   form.style.display = form.style.display === 'none' ? 'block' : 'none';
-  if (form.style.display === 'block' && !serverCache.length) {
-    loadServers();
+  if (form.style.display === 'block') {
+    if (!serverCache.length) {
+      await loadServers();
+    }
+    if (!planCatalogCache.length) {
+      await loadPlanCatalog();
+    }
   }
 }
 
