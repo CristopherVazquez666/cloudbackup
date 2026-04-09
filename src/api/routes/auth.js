@@ -79,6 +79,55 @@ function resolveAccountFromSso(db, server, cpanelUser, domain) {
   `).get(id);
 }
 
+function isDevUserPreviewEnabled() {
+  return process.env.NODE_ENV !== 'production' && process.env.DEV_ALLOW_DIRECT_USER_PREVIEW === 'true';
+}
+
+function ensureDevPreviewAccount(db) {
+  const existing = db.prepare(`
+    SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    WHERE a.status = 'active'
+    ORDER BY a.created_at ASC
+    LIMIT 1
+  `).get();
+
+  if (existing) {
+    return existing;
+  }
+
+  const server = db.prepare(`
+    SELECT *
+    FROM servers
+    WHERE enabled = 1
+    ORDER BY created_at ASC
+    LIMIT 1
+  `).get();
+
+  if (!server) {
+    return null;
+  }
+
+  const accountId = uuidv4();
+  const cpanelUser = 'demo';
+  const domain = 'demo.localhost';
+  const storagePath = `/${server.slug}/${cpanelUser}`;
+
+  db.prepare(`
+    INSERT INTO accounts (
+      id, server_id, cpanel_user, domain, plan, status, storage_path, auto_backup_enabled
+    ) VALUES (?, ?, ?, ?, 'basic', 'active', ?, 0)
+  `).run(accountId, server.id, cpanelUser, domain, storagePath);
+
+  return db.prepare(`
+    SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    WHERE a.id = ?
+  `).get(accountId);
+}
+
 router.post('/login', (req, res) => {
   const { username, password } = req.body || {};
   const expectedUser = process.env.ADMIN_USER || '';
@@ -114,6 +163,32 @@ router.get('/session', optionalAuthMiddleware, (req, res) => {
   }
 
   return res.json(serializeSession(req));
+});
+
+router.get('/dev/user-preview', (req, res) => {
+  if (!isDevUserPreviewEnabled()) {
+    return res.status(404).json({ error: 'Not found' });
+  }
+
+  const db = getDb();
+  const account = ensureDevPreviewAccount(db);
+
+  if (!account) {
+    return res.status(500).json({ error: 'No enabled server is available for local preview' });
+  }
+
+  issueSession(res, {
+    role: 'user',
+    accountId: account.id,
+    cpanelUser: account.cpanel_user,
+    metadata: {
+      server_slug: account.server_slug,
+      preview_domain: account.domain,
+      source: 'local-dev-preview'
+    }
+  });
+
+  return res.redirect('/user/');
 });
 
 router.post('/sso/exchange', (req, res) => {

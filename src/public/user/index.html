@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  --header-height: 74px;
   --bg: #0A0A0F; --bg2: #111118; --bg3: #1A1A26;
   --border: rgba(249,115,22,0.18); --border2: rgba(249,115,22,0.34);
   --primary: #F97316; --primary2: #EA580C; --accent: #FDBA74;
@@ -30,7 +31,7 @@ body {
   display:flex; flex-direction:column; position:relative;
   transition:width 0.26s ease, min-width 0.26s ease;
 }
-.logo { padding:22px 18px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
+.logo { min-height:var(--header-height); padding:0 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:10px; }
 .logo-icon { width:32px; height:32px; background:var(--grad); border-radius:8px; display:flex; align-items:center; justify-content:center; color:#fff; }
 .logo-icon svg { width:16px; height:16px; stroke:currentColor; fill:none; stroke-width:1.9; }
 .logo-text {
@@ -39,7 +40,7 @@ body {
   transition:opacity 0.16s ease, transform 0.16s ease;
 }
 .sidebar-toggle {
-  position:absolute; top:22px; right:14px; width:28px; height:28px;
+  position:absolute; top:calc((var(--header-height) - 28px) / 2); right:14px; width:28px; height:28px;
   border-radius:999px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2);
   display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:3;
   transition:transform 0.22s ease, color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
@@ -55,9 +56,9 @@ nav { flex:1; padding:14px 10px; overflow-y:auto; overflow-x:visible; }
 }
 .nav-item:hover { background:var(--bg3); color:var(--text); }
 .nav-item.active { background:rgba(249,115,22,0.14); color:var(--accent); border-color:var(--border2); }
-.nav-icon { width:20px; height:20px; flex:0 0 20px; display:grid; place-items:center; }
+.nav-icon { width:20px; height:20px; flex:0 0 20px; display:flex; align-items:center; justify-content:center; margin:0; }
 .nav-item svg { width:18px; height:18px; flex-shrink:0; display:block; margin:0; }
-.nav-item span { transition:opacity 0.16s ease, transform 0.16s ease; }
+.nav-label { transition:opacity 0.16s ease, transform 0.16s ease; }
 .sidebar-footer { padding:12px; border-top:1px solid var(--border); display:grid; gap:8px; }
 .lang-selector { display:flex; gap:4px; background:var(--bg3); padding:4px; border-radius:14px; border:1px solid var(--border); }
 .lang-btn { flex:1; padding:4px; border-radius:6px; font-size:12px; cursor:pointer; color:var(--text2); border:none; background:transparent; font-family:'Manrope',sans-serif; }
@@ -72,7 +73,6 @@ nav { flex:1; padding:14px 10px; overflow-y:auto; overflow-x:visible; }
 body.sidebar-collapsed .sidebar { width:76px; min-width:76px; }
 body.sidebar-collapsed .logo { justify-content:center; padding-inline:0; }
 body.sidebar-collapsed .logo-text,
-body.sidebar-collapsed .nav-item span,
 body.sidebar-collapsed .lang-selector,
 body.sidebar-collapsed .theme-toggle span,
 body.sidebar-collapsed .toggle-switch {
@@ -81,13 +81,15 @@ body.sidebar-collapsed .toggle-switch {
 body.sidebar-collapsed nav { padding-inline:0; }
 body.sidebar-collapsed .lang-selector { display:none; }
 body.sidebar-collapsed .nav-item {
-  display:grid; place-items:center; padding:0; width:52px; height:52px; margin-inline:auto; border-radius:16px;
+  display:flex; align-items:center; justify-content:center; gap:0;
+  padding:0; width:52px; height:52px; margin-inline:auto; border-radius:16px;
 }
+body.sidebar-collapsed .nav-label { display:none; }
 body.sidebar-collapsed .theme-toggle { display:grid; place-items:center; padding:0; width:52px; height:52px; margin:0 auto; gap:0; border-radius:16px; }
 body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; display:flex; justify-content:center; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); right:-14px; }
 body.sidebar-collapsed .theme-toggle svg { width:18px; height:18px; }
-body.sidebar-collapsed .nav-icon { width:20px; height:20px; }
+body.sidebar-collapsed .nav-icon { width:20px; height:20px; min-width:20px; min-height:20px; margin:0 auto; }
 .nav-tooltip {
   position:fixed;
   top:0;
@@ -109,7 +111,7 @@ body.sidebar-collapsed .nav-icon { width:20px; height:20px; }
 .nav-tooltip.visible { opacity:1; }
 
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
-.topbar { padding:17px 28px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; }
+.topbar { min-height:var(--header-height); padding:0 28px; border-bottom:1px solid var(--border); background:var(--bg2); display:flex; align-items:center; justify-content:space-between; }
 .topbar-left { display:flex; align-items:center; gap:12px; }
 .user-pill { display:flex; align-items:center; gap:8px; background:var(--bg3); padding:6px 14px; border-radius:20px; border:1px solid var(--border); font-size:12px; }
 .user-dot { width:8px; height:8px; background:var(--success); border-radius:50%; }
@@ -188,7 +190,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
 @media (max-width: 960px) {
   body { height:auto; min-height:100vh; overflow:auto; }
   .sidebar { width:176px; min-width:176px; }
-  .topbar { padding:16px 20px; }
+  .topbar { padding:0 20px; }
   .content { padding:22px; }
 }
 </style>
@@ -215,23 +217,23 @@ tbody tr:hover td { background:rgba(249,115,22,0.03); }
   <nav>
     <div class="nav-item active" data-page="home" onclick="showPage('home', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
-      <span data-i18n="nav.home">Home</span>
+      <span class="nav-label" data-i18n="nav.home">Home</span>
     </div>
     <div class="nav-item" data-page="restore" onclick="showPage('restore', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></span>
-      <span data-i18n="nav.restore">Restore & Download</span>
+      <span class="nav-label" data-i18n="nav.restore">Restore & Download</span>
     </div>
     <div class="nav-item" data-page="downloads" onclick="showPage('downloads', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></span>
-      <span data-i18n="nav.downloads">Downloads</span>
+      <span class="nav-label" data-i18n="nav.downloads">Downloads</span>
     </div>
     <div class="nav-item" data-page="alerts" onclick="showPage('alerts', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-      <span data-i18n="nav.alerts">Alerts</span>
+      <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
     </div>
     <div class="nav-item" data-page="queue" onclick="showPage('queue', this)">
       <span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>
-      <span data-i18n="nav.queue">Queue</span>
+      <span class="nav-label" data-i18n="nav.queue">Queue</span>
     </div>
   </nav>
   <div class="sidebar-footer">
@@ -441,7 +443,7 @@ function toggleSidebar() {
 
 function syncNavTooltips() {
   document.querySelectorAll('.nav-item').forEach((item) => {
-    const label = item.querySelector('span[data-i18n], span')?.textContent?.trim();
+    const label = item.querySelector('.nav-label')?.textContent?.trim();
     if (label) {
       item.setAttribute('data-tooltip', label);
     } else {

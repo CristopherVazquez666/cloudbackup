@@ -8,6 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
+  --header-height: 78px;
   --bg: #0A0A0F;
   --bg2: #111118;
   --bg3: #1A1A26;
@@ -50,7 +51,7 @@ body {
   transition:width 0.26s ease, min-width 0.26s ease;
 }
 .logo {
-  padding:24px 20px 20px; border-bottom:1px solid var(--border);
+  min-height:var(--header-height); padding:0 20px; border-bottom:1px solid var(--border);
   display:flex; align-items:center; gap:10px;
 }
 .logo-icon {
@@ -64,7 +65,7 @@ body {
   transition:opacity 0.2s ease, transform 0.2s ease;
 }
 .sidebar-toggle {
-  position:absolute; top:24px; right:14px; width:28px; height:28px;
+  position:absolute; top:calc((var(--header-height) - 28px) / 2); right:14px; width:28px; height:28px;
   border-radius:999px; border:1px solid var(--border2); background:var(--bg3); color:var(--text2);
   display:flex; align-items:center; justify-content:center; cursor:pointer; z-index:3;
   transition:transform 0.22s ease, color 0.2s ease, border-color 0.2s ease, background 0.2s ease;
@@ -81,9 +82,9 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; overflow-x:visible; }
 }
 .nav-item:hover { background:var(--bg3); color:var(--text); }
 .nav-item.active { background:rgba(249,115,22,0.14); color:var(--accent); border-color:var(--border2); }
-.nav-icon { width:20px; height:20px; flex:0 0 20px; display:grid; place-items:center; }
+.nav-icon { width:20px; height:20px; flex:0 0 20px; display:flex; align-items:center; justify-content:center; margin:0; }
 .nav-item svg { width:18px; height:18px; flex-shrink:0; display:block; margin:0; }
-.nav-item span { transition:opacity 0.16s ease, transform 0.16s ease; }
+.nav-label { transition:opacity 0.16s ease, transform 0.16s ease; }
 .nav-badge { margin-left:auto; background:var(--danger); color:#fff; font-size:10px; padding:2px 6px; border-radius:20px; font-weight:600; }
 
 .sidebar-footer { padding:12px; border-top:1px solid var(--border); display:grid; gap:8px; }
@@ -101,7 +102,6 @@ nav { flex:1; padding:16px 12px; overflow-y:auto; overflow-x:visible; }
 body.sidebar-collapsed .sidebar { width:78px; min-width:78px; }
 body.sidebar-collapsed .logo { justify-content:center; padding-inline:0; }
 body.sidebar-collapsed .logo-text,
-body.sidebar-collapsed .nav-item span:not(.nav-badge),
 body.sidebar-collapsed .lang-selector,
 body.sidebar-collapsed .theme-toggle span,
 body.sidebar-collapsed .toggle-switch {
@@ -110,14 +110,16 @@ body.sidebar-collapsed .toggle-switch {
 body.sidebar-collapsed nav { padding-inline:0; }
 body.sidebar-collapsed .lang-selector { display:none; }
 body.sidebar-collapsed .nav-item {
-  display:grid; place-items:center; padding:0; width:52px; height:52px; margin-inline:auto; border-radius:16px;
+  display:flex; align-items:center; justify-content:center; gap:0;
+  padding:0; width:52px; height:52px; margin-inline:auto; border-radius:16px;
 }
+body.sidebar-collapsed .nav-label { display:none; }
 body.sidebar-collapsed .nav-badge { display:none !important; }
 body.sidebar-collapsed .sidebar-footer { padding:14px 0 16px; display:flex; justify-content:center; }
 body.sidebar-collapsed .theme-toggle { display:grid; place-items:center; padding:0; width:52px; height:52px; margin:0 auto; gap:0; border-radius:16px; }
 body.sidebar-collapsed .sidebar-toggle { transform:rotate(180deg); right:-14px; }
 body.sidebar-collapsed .theme-toggle svg { width:18px; height:18px; }
-body.sidebar-collapsed .nav-icon { width:20px; height:20px; }
+body.sidebar-collapsed .nav-icon { width:20px; height:20px; min-width:20px; min-height:20px; margin:0 auto; }
 .nav-tooltip {
   position:fixed;
   top:0;
@@ -141,7 +143,7 @@ body.sidebar-collapsed .nav-icon { width:20px; height:20px; }
 /* Main */
 .main { flex:1; display:flex; flex-direction:column; overflow:hidden; }
 .topbar {
-  padding:18px 30px; border-bottom:1px solid var(--border); background:var(--bg2);
+  min-height:var(--header-height); padding:0 30px; border-bottom:1px solid var(--border); background:var(--bg2);
   display:flex; align-items:center; justify-content:space-between;
 }
 .topbar-title { font-family:'Manrope',sans-serif; font-size:18px; font-weight:600; letter-spacing:-0.04em; }
@@ -194,12 +196,15 @@ body.sidebar-collapsed .nav-icon { width:20px; height:20px; }
 
 /* Stats grid */
 .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(240px,1fr)); gap:18px; margin-bottom:24px; }
+.dashboard-stats { grid-template-columns:repeat(3, minmax(0, 1fr)); }
 .stat-card {
   background:var(--bg2); border:1px solid var(--border); border-radius:16px;
   min-height:132px; padding:22px 24px; display:flex; align-items:center; justify-content:space-between;
   transition:border-color 0.2s;
 }
+.stat-card.is-link { cursor:pointer; transition:border-color 0.2s, transform 0.2s, background 0.2s; }
 .stat-card:hover { border-color:var(--border2); }
+.stat-card.is-link:hover { background:var(--bg3); transform:translateY(-2px); }
 .stat-info {}
 .stat-value {
   font-family:'Manrope',sans-serif; font-size:28px; font-weight:600; line-height:1.02;
@@ -268,8 +273,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
 
 .loading { padding:40px; text-align:center; color:var(--text3); }
 
-.dashboard-shell { display:grid; grid-template-columns:minmax(0, 1.7fr) minmax(280px, 332px); gap:22px; align-items:start; }
-.mini-stack { display:grid; gap:14px; }
+.dashboard-shell { display:grid; grid-template-columns:minmax(0, 1fr) minmax(280px, 320px); gap:22px; align-items:start; }
 .mini-card {
   background:var(--bg2); border:1px solid var(--border); border-radius:16px;
   padding:18px 20px;
@@ -285,24 +289,51 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
   border-radius:999px; font-size:11px; font-weight:600;
   background:rgba(249,115,22,0.12); color:var(--accent);
 }
-.quick-link {
-  display:flex; align-items:center; justify-content:space-between; gap:12px;
-  padding:12px 14px; border-radius:12px; border:1px solid var(--border);
-  background:var(--bg3); color:var(--text2); cursor:pointer;
-  transition:border-color 0.2s, color 0.2s, transform 0.2s;
+.node-overview-list { display:grid; gap:10px; margin-top:14px; }
+.node-overview-item {
+  display:grid; gap:7px; padding:12px 14px; border-radius:12px;
+  background:var(--bg3); border:1px solid var(--border);
 }
-.quick-link:hover { border-color:var(--border2); color:var(--text); transform:translateY(-1px); }
-.quick-link svg { width:16px; height:16px; }
-
+.node-overview-head { display:flex; align-items:center; justify-content:space-between; gap:10px; }
+.node-overview-name { font-size:13px; font-weight:600; }
+.node-overview-meta { font-size:12px; color:var(--text3); }
+.node-meter {
+  width:100%; height:8px; border-radius:999px; overflow:hidden;
+  background:rgba(255,255,255,0.05);
+}
+.node-meter-fill {
+  height:100%; border-radius:999px; background:var(--grad);
+}
+.node-subtle { font-size:12px; color:var(--text3); }
+.nodes-layout { display:grid; gap:20px; }
+.nodes-grid { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:16px; }
+.node-card {
+  background:var(--bg2); border:1px solid var(--border); border-radius:16px;
+  padding:18px 20px; display:grid; gap:14px;
+}
+.node-card-top { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; }
+.node-card-title { font-size:16px; font-weight:600; letter-spacing:-0.03em; }
+.node-card-copy { font-size:13px; color:var(--text2); margin-top:4px; }
+.node-card-stats { display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; }
+.node-stat {
+  padding:12px 14px; border-radius:12px; border:1px solid var(--border);
+  background:var(--bg3);
+}
+.node-stat-value { font-size:20px; font-weight:600; letter-spacing:-0.04em; }
+.node-stat-label { font-size:11px; color:var(--text3); text-transform:uppercase; letter-spacing:0.08em; margin-top:5px; }
+.node-card-foot { display:flex; justify-content:space-between; gap:10px; font-size:12px; color:var(--text3); }
 @media (max-width: 1280px) {
+  .dashboard-stats { grid-template-columns:repeat(2, minmax(0, 1fr)); }
   .dashboard-shell { grid-template-columns:1fr; }
+  .nodes-grid { grid-template-columns:1fr; }
 }
 
 @media (max-width: 920px) {
+  .dashboard-stats { grid-template-columns:1fr; }
   body { height:auto; min-height:100vh; overflow:auto; }
   .sidebar { width:188px; min-width:188px; }
   .content { padding:22px; }
-  .topbar { padding:16px 22px; }
+  .topbar { padding:0 22px; }
 }
 </style>
 </head>
@@ -357,27 +388,31 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
   <nav>
     <div class="nav-item active" data-page="dashboard" onclick="showPage('dashboard', this)">
       <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>
-      <span data-i18n="nav.dashboard">Dashboard</span>
+      <span class="nav-label" data-i18n="nav.dashboard">Dashboard</span>
     </div>
     <div class="nav-item" data-page="servers" onclick="showPage('servers', this)">
       <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg></span>
-      <span data-i18n="nav.servers">Servers</span>
+      <span class="nav-label" data-i18n="nav.servers">Servers</span>
+    </div>
+    <div class="nav-item" data-page="nodes" onclick="showPage('nodes', this)">
+      <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"></path><path d="M12 12l8-4.5"></path><path d="M12 12v9"></path><path d="M12 12L4 7.5"></path></svg></span>
+      <span class="nav-label" data-i18n="nav.nodes">Nodes</span>
     </div>
     <div class="nav-item" data-page="accounts" onclick="showPage('accounts', this)">
       <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></span>
-      <span data-i18n="nav.accounts">Accounts</span>
+      <span class="nav-label" data-i18n="nav.accounts">Accounts</span>
     </div>
     <div class="nav-item" data-page="backups" onclick="showPage('backups', this)">
       <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></span>
-      <span data-i18n="nav.backups">Backups</span>
+      <span class="nav-label" data-i18n="nav.backups">Backups</span>
     </div>
     <div class="nav-item" data-page="jobs" onclick="showPage('jobs', this)">
       <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></span>
-      <span data-i18n="nav.jobs">Jobs</span>
+      <span class="nav-label" data-i18n="nav.jobs">Jobs</span>
     </div>
     <div class="nav-item" data-page="alerts" onclick="showPage('alerts', this)">
       <span class="nav-icon"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></span>
-      <span data-i18n="nav.alerts">Alerts</span>
+      <span class="nav-label" data-i18n="nav.alerts">Alerts</span>
       <span class="nav-badge" id="alertBadge" style="display:none">0</span>
     </div>
   </nav>
@@ -410,7 +445,7 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
   <div class="content">
     <!-- Dashboard -->
     <div class="page active" id="page-dashboard">
-      <div class="stats-grid" id="statsGrid"><div class="loading">Loading...</div></div>
+      <div class="stats-grid dashboard-stats" id="statsGrid"><div class="loading">Loading...</div></div>
       <div class="dashboard-shell">
         <div class="section">
           <div class="section-header">
@@ -424,36 +459,13 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
           </div>
           <div id="recentAlerts"><div class="loading">Loading...</div></div>
         </div>
-        <div class="mini-stack">
-          <div class="mini-card">
-            <div class="mini-card-top">
-              <div class="mini-title">Platform Shape</div>
-              <span class="mini-pill">Control Plane</span>
-            </div>
-            <div class="mini-copy">Server inventory, signed access handoff, and agent-ready jobs in one control plane.</div>
+        <div class="mini-card">
+          <div class="mini-card-top">
+            <div class="mini-title" data-i18n="nodes.dashboardTitle">Storage Nodes</div>
+            <span class="mini-pill" data-i18n="nodes.dashboardPill">Routing</span>
           </div>
-          <div class="mini-card">
-            <div class="mini-card-top">
-              <div class="mini-title">Quick Links</div>
-              <span class="mini-pill">Ops</span>
-            </div>
-            <div class="quick-link" onclick="showPage('servers')">
-              <span>Review servers</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
-            </div>
-            <div class="quick-link" onclick="showPage('accounts')" style="margin-top:10px;">
-              <span>Manage accounts</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
-            </div>
-            <div class="quick-link" onclick="showPage('jobs')" style="margin-top:10px;">
-              <span>Review queue</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
-            </div>
-            <div class="quick-link" onclick="showPage('alerts')" style="margin-top:10px;">
-              <span>Open alerts</span>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"></path><path d="M13 5l7 7-7 7"></path></svg>
-            </div>
-          </div>
+          <div class="mini-copy" data-i18n="nodes.dashboardCopy">Logical storage pools grouped by service tier, ready for real routing once the backend node layer is connected.</div>
+          <div class="node-overview-list" id="dashboardNodes"><div class="node-subtle">Loading...</div></div>
         </div>
       </div>
     </div>
@@ -469,6 +481,20 @@ tbody tr:hover td { background:rgba(249,115,22,0.04); }
         </div>
         <div id="serversSummary" style="padding:20px 24px 0;"></div>
         <div id="serversTable"><div class="loading">Loading...</div></div>
+      </div>
+    </div>
+
+    <!-- Nodes -->
+    <div class="page" id="page-nodes">
+      <div class="section">
+        <div class="section-header">
+          <div class="section-title" data-i18n="nav.nodes">Nodes</div>
+          <button class="btn btn-ghost" onclick="loadNodes()">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg>
+          </button>
+        </div>
+        <div id="nodesSummary" style="padding:20px 24px 0;"></div>
+        <div id="nodesTable"><div class="loading">Loading...</div></div>
       </div>
     </div>
 
@@ -549,7 +575,7 @@ const i18n = {
   en: {
     'login.subtitle': 'Admin Panel — Secure Access',
     'login.user': 'USERNAME', 'login.pass': 'PASSWORD', 'login.btn': 'Sign In',
-    'nav.dashboard': 'Dashboard', 'nav.servers': 'Servers', 'nav.accounts': 'Accounts',
+    'nav.dashboard': 'Dashboard', 'nav.servers': 'Servers', 'nav.nodes': 'Nodes', 'nav.accounts': 'Accounts',
     'nav.backups': 'Backups', 'nav.jobs': 'Jobs', 'nav.alerts': 'Alerts',
     'theme.toggle': 'Theme', 'topbar.loggedAs': 'Logged in as:', 'topbar.logout': 'Logout',
     'dash.recentAlerts': 'Recent Alerts', 'btn.refresh': 'Refresh',
@@ -565,6 +591,25 @@ const i18n = {
     'servers.noJobActivity': 'No job activity yet',
     'servers.empty': 'No servers configured yet',
     'servers.loadError': 'Error loading servers',
+    'nodes.summary': 'Storage nodes',
+    'nodes.active': 'Active nodes',
+    'nodes.routedServers': 'Attached servers',
+    'nodes.projectedUsage': 'Projected usage',
+    'nodes.loadError': 'Error loading nodes',
+    'nodes.none': 'No nodes modeled yet',
+    'nodes.role.entry': 'Shared entry',
+    'nodes.role.growth': 'Shared growth',
+    'nodes.role.premium': 'Shared premium',
+    'nodes.role.vps': 'VPS fleet',
+    'nodes.policy': 'Routing policy',
+    'nodes.capacity': 'Projected capacity',
+    'nodes.accounts': 'Accounts',
+    'nodes.backups': 'Backups',
+    'nodes.jobs': 'Queued / running',
+    'nodes.servers': 'Servers',
+    'nodes.dashboardTitle': 'Storage Nodes',
+    'nodes.dashboardCopy': 'Logical storage pools grouped by service tier, ready for real routing once the backend node layer is connected.',
+    'nodes.dashboardPill': 'Routing',
     'stat.accounts': 'Total Accounts', 'stat.backups': 'Total Backups',
     'stat.jobs': 'Total Jobs', 'stat.running': 'Queued / Running', 'stat.alerts': 'Unread Alerts',
     'stat.servers': 'Registered Servers',
@@ -572,7 +617,7 @@ const i18n = {
   es: {
     'login.subtitle': 'Panel Admin — Acceso Seguro',
     'login.user': 'USUARIO', 'login.pass': 'CONTRASEÑA', 'login.btn': 'Ingresar',
-    'nav.dashboard': 'Inicio', 'nav.servers': 'Servidores', 'nav.accounts': 'Cuentas',
+    'nav.dashboard': 'Inicio', 'nav.servers': 'Servidores', 'nav.nodes': 'Nodos', 'nav.accounts': 'Cuentas',
     'nav.backups': 'Respaldos', 'nav.jobs': 'Trabajos', 'nav.alerts': 'Alertas',
     'theme.toggle': 'Tema', 'topbar.loggedAs': 'Sesión:', 'topbar.logout': 'Salir',
     'dash.recentAlerts': 'Alertas Recientes', 'btn.refresh': 'Actualizar',
@@ -588,6 +633,25 @@ const i18n = {
     'servers.noJobActivity': 'Sin actividad todavia',
     'servers.empty': 'Aun no hay servidores configurados',
     'servers.loadError': 'Error al cargar servidores',
+    'nodes.summary': 'Nodos de respaldo',
+    'nodes.active': 'Nodos activos',
+    'nodes.routedServers': 'Servidores ligados',
+    'nodes.projectedUsage': 'Uso proyectado',
+    'nodes.loadError': 'Error al cargar nodos',
+    'nodes.none': 'Todavia no hay nodos modelados',
+    'nodes.role.entry': 'Shared de entrada',
+    'nodes.role.growth': 'Shared de crecimiento',
+    'nodes.role.premium': 'Shared premium',
+    'nodes.role.vps': 'Flota VPS',
+    'nodes.policy': 'Politica',
+    'nodes.capacity': 'Capacidad proyectada',
+    'nodes.accounts': 'Cuentas',
+    'nodes.backups': 'Respaldos',
+    'nodes.jobs': 'En cola / activos',
+    'nodes.servers': 'Servidores',
+    'nodes.dashboardTitle': 'Storage Nodes',
+    'nodes.dashboardCopy': 'Pools logicos de almacenamiento agrupados por tipo de servicio, listos para conectarse despues a la capa real de nodos.',
+    'nodes.dashboardPill': 'Routing',
     'stat.accounts': 'Total Cuentas', 'stat.backups': 'Total Respaldos',
     'stat.jobs': 'Total Trabajos', 'stat.running': 'En Cola / Activos', 'stat.alerts': 'Alertas Nuevas',
     'stat.servers': 'Servidores registrados',
@@ -598,6 +662,7 @@ let lang = localStorage.getItem('lang') || 'en';
 let currentPage = 'dashboard';
 let currentAdmin = null;
 let serverCache = [];
+let nodeCache = [];
 let activeTooltipTarget = null;
 const sidebarStorageKey = 'bovedix-admin-sidebar-collapsed';
 
@@ -633,6 +698,93 @@ function badgeClass(level) {
   return 'danger';
 }
 
+function formatGiB(value) {
+  return `${Math.round(value)} GB`;
+}
+
+function deriveNodeDefinitions() {
+  return [
+    { id: 'node-shared-entry', name: 'Node 01', roleKey: 'nodes.role.entry', plans: ['Tell It', 'Basic'], capacityGiB: 2048, status: 'active' },
+    { id: 'node-shared-growth', name: 'Node 02', roleKey: 'nodes.role.growth', plans: ['Sell It', 'Pro'], capacityGiB: 3072, status: 'active' },
+    { id: 'node-shared-premium', name: 'Node 03', roleKey: 'nodes.role.premium', plans: ['Max It', 'Push It', 'Enterprise'], capacityGiB: 4096, status: 'active' },
+    { id: 'node-vps-core', name: 'Node 04', roleKey: 'nodes.role.vps', plans: ['VPS'], capacityGiB: 6144, status: 'active' }
+  ];
+}
+
+function inferNodeId(server, account) {
+  const serverText = `${server?.slug || ''} ${server?.name || ''} ${server?.cpanel_host || ''}`.toLowerCase();
+  const planText = `${account?.plan || ''}`.toLowerCase();
+
+  if (serverText.includes('vps') || planText.includes('vps')) return 'node-vps-core';
+  if (planText.includes('enterprise') || planText.includes('push') || planText.includes('max')) return 'node-shared-premium';
+  if (planText.includes('pro') || planText.includes('sell')) return 'node-shared-growth';
+  return 'node-shared-entry';
+}
+
+function buildNodeModel({ servers, accounts, jobs, backups }) {
+  const definitions = deriveNodeDefinitions();
+  const serverBySlug = new Map(servers.map((server) => [server.slug, server]));
+  const accountNodeByUser = new Map();
+  const nodes = definitions.map((definition) => ({
+    ...definition,
+    role: t(definition.roleKey),
+    serverSlugs: new Set(),
+    accounts: [],
+    jobs: [],
+    backups: [],
+    usageGiB: 0
+  }));
+  const nodeById = new Map(nodes.map((node) => [node.id, node]));
+
+  accounts.forEach((account) => {
+    const server = serverBySlug.get(account.server_slug) || { slug: account.server_slug, name: account.server_name };
+    const nodeId = inferNodeId(server, account);
+    const node = nodeById.get(nodeId);
+    if (!node) return;
+    node.accounts.push(account);
+    if (account.server_slug) node.serverSlugs.add(account.server_slug);
+    accountNodeByUser.set(account.cpanel_user, nodeId);
+  });
+
+  jobs.forEach((job) => {
+    const nodeId = accountNodeByUser.get(job.cpanel_user) || inferNodeId(serverBySlug.get(job.server_slug), { plan: 'basic' });
+    const node = nodeById.get(nodeId);
+    if (!node) return;
+    node.jobs.push(job);
+    if (job.server_slug) node.serverSlugs.add(job.server_slug);
+  });
+
+  backups.forEach((backup) => {
+    const nodeId = accountNodeByUser.get(backup.cpanel_user) || 'node-shared-entry';
+    const node = nodeById.get(nodeId);
+    if (!node) return;
+    node.backups.push(backup);
+  });
+
+  nodes.forEach((node) => {
+    const exactUsageGiB = node.backups.reduce((sum, backup) => sum + ((backup.filesize || 0) / 1024 / 1024 / 1024), 0);
+    const projectedUsageGiB = exactUsageGiB > 0 ? exactUsageGiB : (node.accounts.length * 18) + (node.backups.length * 2);
+    node.usageGiB = Math.max(projectedUsageGiB, node.accounts.length ? 24 : 0);
+    node.usagePercent = Math.min(100, Math.round((node.usageGiB / node.capacityGiB) * 100));
+    node.serverCount = node.serverSlugs.size;
+    node.jobCount = node.jobs.filter((job) => ['queued', 'running'].includes(job.status)).length;
+  });
+
+  return nodes;
+}
+
+async function fetchNodeSnapshot() {
+  const [servers, accounts, jobs, backups] = await Promise.all([
+    api('/api/servers'),
+    api('/api/accounts'),
+    api('/api/jobs'),
+    api('/api/backups/admin/all')
+  ]);
+
+  serverCache = servers;
+  return buildNodeModel({ servers, accounts, jobs, backups });
+}
+
 function setLang(l) {
   lang = l;
   localStorage.setItem('lang', l);
@@ -666,7 +818,7 @@ function toggleSidebar() {
 
 function syncNavTooltips() {
   document.querySelectorAll('.nav-item').forEach((item) => {
-    const label = item.querySelector('span[data-i18n], span:not(.nav-badge)')?.textContent?.trim();
+    const label = item.querySelector('.nav-label')?.textContent?.trim();
     if (label) {
       item.setAttribute('data-tooltip', label);
     } else {
@@ -800,6 +952,7 @@ function showPage(page, el) {
   document.getElementById('pageTitle').textContent = t('nav.' + page);
   if (page === 'dashboard') loadDashboard();
   if (page === 'servers') loadServers();
+  if (page === 'nodes') loadNodes();
   if (page === 'accounts') loadAccounts();
   if (page === 'backups') loadBackups();
   if (page === 'jobs') loadJobs();
@@ -818,13 +971,15 @@ function renderUnauthorized(error) {
 async function loadDashboard() {
   try {
     const stats = await api('/api/jobs/stats/overview');
+    const nodes = await fetchNodeSnapshot();
+    nodeCache = nodes;
     document.getElementById('statsGrid').innerHTML = `
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalServers}</div><div class="stat-label">${t('stat.servers')}</div><div class="stat-sub">${stats.enabledServers} ${t('servers.enabled').toLowerCase()}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalAccounts}</div><div class="stat-label">${t('stat.accounts')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.unreadAlerts}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.totalJobs}</div><div class="stat-label">${t('stat.jobs')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></div></div>
-      <div class="stat-card"><div class="stat-info"><div class="stat-value">${stats.runningJobs}</div><div class="stat-label">${t('stat.running')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
+      <div class="stat-card is-link" onclick="showPage('servers')"><div class="stat-info"><div class="stat-value">${stats.totalServers}</div><div class="stat-label">${t('stat.servers')}</div><div class="stat-sub">${stats.enabledServers} ${t('servers.enabled').toLowerCase()}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/><line x1="7" y1="7" x2="7.01" y2="7"/><line x1="7" y1="17" x2="7.01" y2="17"/></svg></div></div>
+      <div class="stat-card is-link" onclick="showPage('accounts')"><div class="stat-info"><div class="stat-value">${stats.totalAccounts}</div><div class="stat-label">${t('stat.accounts')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div></div>
+      <div class="stat-card is-link" onclick="showPage('backups')"><div class="stat-info"><div class="stat-value">${stats.totalBackups}</div><div class="stat-label">${t('stat.backups')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M21 12c0 1.66-4 3-9 3s-9-1.34-9-3"/><path d="M3 5v14c0 1.66 4 3 9 3s9-1.34 9-3V5"/></svg></div></div>
+      <div class="stat-card is-link" onclick="showPage('alerts')"><div class="stat-info"><div class="stat-value">${stats.unreadAlerts}</div><div class="stat-label">${t('stat.alerts')}</div></div><div class="stat-icon red"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg></div></div>
+      <div class="stat-card is-link" onclick="showPage('jobs')"><div class="stat-info"><div class="stat-value">${stats.totalJobs}</div><div class="stat-label">${t('stat.jobs')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-.08-4.89"/></svg></div></div>
+      <div class="stat-card is-link" onclick="showPage('jobs')"><div class="stat-info"><div class="stat-value">${stats.runningJobs}</div><div class="stat-label">${t('stat.running')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg></div></div>
     `;
 
     const alertBadge = document.getElementById('alertBadge');
@@ -846,9 +1001,24 @@ async function loadDashboard() {
         <span class="badge badge-${badgeClass(alert.level)}">${h(alert.level)}</span>
       </div>
     `).join('') : '<div class="empty-state">No alerts</div>';
+
+    document.getElementById('dashboardNodes').innerHTML = nodes.length ? nodes.map((node) => `
+      <div class="node-overview-item">
+        <div class="node-overview-head">
+          <div>
+            <div class="node-overview-name">${h(node.name)} <span style="color:var(--text3);font-weight:500;">${h(node.role)}</span></div>
+            <div class="node-overview-meta">${node.serverCount} ${t('nodes.servers').toLowerCase()} · ${node.accounts.length} ${t('nodes.accounts').toLowerCase()}</div>
+          </div>
+          <span class="mini-pill">${node.usagePercent}%</span>
+        </div>
+        <div class="node-meter"><div class="node-meter-fill" style="width:${node.usagePercent}%"></div></div>
+        <div class="node-subtle">${formatGiB(node.usageGiB)} / ${formatGiB(node.capacityGiB)} · ${node.jobCount} ${t('nodes.jobs').toLowerCase()}</div>
+      </div>
+    `).join('') : `<div class="node-subtle">${t('nodes.none')}</div>`;
   } catch (error) {
     if (renderUnauthorized(error)) return;
     document.getElementById('statsGrid').innerHTML = '<div class="loading">Error loading stats</div>';
+    document.getElementById('dashboardNodes').innerHTML = `<div class="node-subtle">${t('nodes.loadError')}</div>`;
   }
 }
 
@@ -905,6 +1075,59 @@ function renderServerOptions() {
     .filter((server) => server.enabled)
     .map((server) => `<option value="${h(server.slug)}">${h(server.name)}${server.cpanel_host ? ` — ${h(server.cpanel_host)}` : ''}</option>`)
     .join('');
+}
+
+async function loadNodes() {
+  try {
+    const nodes = await fetchNodeSnapshot();
+    nodeCache = nodes;
+
+    const totalUsageGiB = nodes.reduce((sum, node) => sum + node.usageGiB, 0);
+    const activeNodes = nodes.filter((node) => node.status === 'active').length;
+    const routedServers = nodes.reduce((sum, node) => sum + node.serverCount, 0);
+
+    document.getElementById('nodesSummary').innerHTML = `
+      <div class="stats-grid" style="margin-bottom:20px;">
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${nodes.length}</div><div class="stat-label">${t('nodes.summary')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l8 4.5v9L12 21l-8-4.5v-9L12 3z"></path></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${activeNodes}</div><div class="stat-label">${t('nodes.active')}</div></div><div class="stat-icon green"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12l5 5L20 7"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${routedServers}</div><div class="stat-label">${t('nodes.routedServers')}</div></div><div class="stat-icon blue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg></div></div>
+        <div class="stat-card"><div class="stat-info"><div class="stat-value">${formatGiB(totalUsageGiB)}</div><div class="stat-label">${t('nodes.projectedUsage')}</div></div><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19h16"></path><path d="M7 16V8"></path><path d="M12 16V5"></path><path d="M17 16v-3"></path></svg></div></div>
+      </div>
+    `;
+
+    document.getElementById('nodesTable').innerHTML = nodes.length ? `
+      <div class="nodes-layout">
+        <div class="nodes-grid">
+          ${nodes.map((node) => `
+            <div class="node-card">
+              <div class="node-card-top">
+                <div>
+                  <div class="node-card-title">${h(node.name)} <span style="color:var(--text3);font-weight:500;">${h(node.role)}</span></div>
+                  <div class="node-card-copy">${t('nodes.policy')}: ${h(node.plans.join(' / '))}</div>
+                </div>
+                <span class="badge badge-success">${node.status}</span>
+              </div>
+              <div class="node-meter"><div class="node-meter-fill" style="width:${node.usagePercent}%"></div></div>
+              <div class="node-card-stats">
+                <div class="node-stat"><div class="node-stat-value">${node.serverCount}</div><div class="node-stat-label">${t('nodes.servers')}</div></div>
+                <div class="node-stat"><div class="node-stat-value">${node.accounts.length}</div><div class="node-stat-label">${t('nodes.accounts')}</div></div>
+                <div class="node-stat"><div class="node-stat-value">${node.backups.length}</div><div class="node-stat-label">${t('nodes.backups')}</div></div>
+                <div class="node-stat"><div class="node-stat-value">${node.jobCount}</div><div class="node-stat-label">${t('nodes.jobs')}</div></div>
+              </div>
+              <div class="node-card-foot">
+                <span>${t('nodes.capacity')}: ${formatGiB(node.capacityGiB)}</span>
+                <span>${formatGiB(node.usageGiB)} · ${node.usagePercent}%</span>
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    ` : `<div class="empty-state">${t('nodes.none')}</div>`;
+  } catch (error) {
+    if (renderUnauthorized(error)) return;
+    document.getElementById('nodesSummary').innerHTML = '';
+    document.getElementById('nodesTable').innerHTML = `<div class="loading">${t('nodes.loadError')}</div>`;
+  }
 }
 
 async function loadAccounts() {
