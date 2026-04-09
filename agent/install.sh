@@ -36,7 +36,7 @@ POLL_INTERVAL="15"
 INSTALL_DIR="/opt/bovedix-agent"
 LOCAL_TEMP_DIR="/var/tmp/bovedix-agent"
 PKGACCT_PATH="/scripts/pkgacct"
-INSECURE_TLS="0"
+TLS_REJECT_UNAUTHORIZED="1"
 REPO_OWNER="CristopherVazquez666"
 REPO_NAME="cloudbackup"
 REF="main"
@@ -54,7 +54,7 @@ while [[ $# -gt 0 ]]; do
     --install-dir) INSTALL_DIR="$2"; shift 2 ;;
     --local-temp-dir) LOCAL_TEMP_DIR="$2"; shift 2 ;;
     --pkgacct-path) PKGACCT_PATH="$2"; shift 2 ;;
-    --insecure-tls) INSECURE_TLS="1"; shift 1 ;;
+    --insecure-tls) TLS_REJECT_UNAUTHORIZED="0"; shift 1 ;;
     --repo-owner) REPO_OWNER="$2"; shift 2 ;;
     --repo-name) REPO_NAME="$2"; shift 2 ;;
     --ref) REF="$2"; shift 2 ;;
@@ -135,7 +135,7 @@ WorkingDirectory=${INSTALL_DIR}
 Restart=always
 RestartSec=5
 Environment=BOVEDIX_AGENT_CONFIG=${CONFIG_PATH}
-Environment=NODE_TLS_REJECT_UNAUTHORIZED=${INSECURE_TLS}
+Environment=NODE_TLS_REJECT_UNAUTHORIZED=${TLS_REJECT_UNAUTHORIZED}
 
 [Install]
 WantedBy=multi-user.target
