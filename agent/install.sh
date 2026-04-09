@@ -73,6 +73,8 @@ for cmd in curl node rsync ssh ssh-keygen systemctl; do
   }
 done
 
+NODE_BIN="$(command -v node)"
+
 if [[ ! -x "$PKGACCT_PATH" ]]; then
   echo "pkgacct was not found at $PKGACCT_PATH" >&2
   exit 1
@@ -125,7 +127,7 @@ Wants=network-online.target
 
 [Service]
 Type=simple
-ExecStart=/usr/bin/env node ${AGENT_PATH}
+ExecStart=${NODE_BIN} ${AGENT_PATH}
 WorkingDirectory=${INSTALL_DIR}
 Restart=always
 RestartSec=5
