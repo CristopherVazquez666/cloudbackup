@@ -2,7 +2,6 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../../db');
 const {
-  adminMiddleware,
   isSafeCpanelUser,
   isSafeDomain,
   isSafeServerSlug,
@@ -12,7 +11,7 @@ const {
   safeCompare,
   signSsoPayload
 } = require('../../lib/security');
-const { issueSession, clearSession, optionalAuthMiddleware } = require('../../middleware/auth');
+const { adminMiddleware, issueSession, clearSession, optionalAuthMiddleware } = require('../../middleware/auth');
 
 const router = express.Router();
 
