@@ -163,6 +163,18 @@ async function rsyncFile(config, localFile, remoteFile) {
   await runCommand('rsync', rsyncArgs);
 }
 
+async function rsyncFromRemote(config, remoteFile, localFile) {
+  const rsyncArgs = [
+    '-az',
+    '--partial',
+    '-e',
+    `ssh -i ${config.ssh_key_path} -p ${config.remote_port} -o StrictHostKeyChecking=accept-new`,
+    `${config.remote_user}@${config.remote_host}:${remoteFile}`,
+    localFile
+  ];
+  await runCommand('rsync', rsyncArgs);
+}
+
 async function runBackupJob(config, job) {
   const payload = job.payload || {};
   const cpanelUser = payload.cpanel_user || job.cpanel_user;
@@ -476,6 +488,85 @@ async function runDatabaseBackupJob(config, job) {
   }
 }
 
+function inferDatabaseNameFromJob(job) {
+  const payload = job.payload || {};
+  if (payload.database_name) {
+    return String(payload.database_name).trim();
+  }
+
+  const filename = String(payload.filename || '').trim();
+  if (filename.endsWith('.sql.gz')) {
+    return filename.slice(0, -'.sql.gz'.length);
+  }
+
+  return '';
+}
+
+async function ensureMysqlDatabase(databaseName) {
+  const mysqlArgs = [];
+
+  if (fs.existsSync('/root/.my.cnf')) {
+    mysqlArgs.push('--defaults-file=/root/.my.cnf');
+  }
+
+  await runCommand('mysql', [
+    ...mysqlArgs,
+    '-NBe',
+    `CREATE DATABASE IF NOT EXISTS \`${String(databaseName).replace(/`/g, '``')}\`;`
+  ]);
+}
+
+async function runDatabaseRestoreJob(config, job) {
+  const payload = job.payload || {};
+  const cpanelUser = payload.cpanel_user || job.cpanel_user;
+  const remotePath = String(payload.remote_path || '').trim();
+  const databaseName = inferDatabaseNameFromJob(job);
+
+  if (!cpanelUser) {
+    throw new Error('Database restore job is missing cpanel_user');
+  }
+
+  if (!remotePath) {
+    throw new Error('Database restore job is missing remote_path');
+  }
+
+  if (!databaseName) {
+    throw new Error('Could not determine target database for restore');
+  }
+
+  const tmpDir = path.join(config.local_temp_dir, job.id);
+  await cleanupDir(tmpDir);
+  await ensureDir(tmpDir);
+
+  try {
+    const localArchive = path.join(tmpDir, path.basename(remotePath));
+    const mysqlArgs = [];
+
+    if (fs.existsSync('/root/.my.cnf')) {
+      mysqlArgs.push('--defaults-file=/root/.my.cnf');
+    }
+
+    log(`Downloading database backup from ${config.remote_host}:${remotePath}`);
+    await rsyncFromRemote(config, remotePath, localArchive);
+    await ensureMysqlDatabase(databaseName);
+
+    log(`Restoring database ${databaseName} for ${cpanelUser}`);
+    const restoreScript = [
+      'set -euo pipefail',
+      `gunzip -c ${shellQuote(localArchive)} | mysql ${mysqlArgs.join(' ')} ${shellQuote(databaseName)}`
+    ].join('; ');
+
+    await runCommand('bash', ['-lc', restoreScript]);
+
+    return {
+      remote_path: remotePath,
+      database_name: databaseName
+    };
+  } finally {
+    await cleanupDir(tmpDir);
+  }
+}
+
 async function processJob(config, job) {
   await api(config, `/api/agent/jobs/${job.id}/start`, { method: 'POST' });
   log(`Started job ${job.id} (${job.type}) for ${job.cpanel_user}`);
@@ -497,6 +588,25 @@ async function processJob(config, job) {
         })
       });
       log(`Completed backup job ${job.id}`);
+      return;
+    }
+
+    if (job.type === 'restore') {
+      const backupKind = String(job.payload?.backup_kind || 'full').trim().toLowerCase();
+
+      if (backupKind !== 'db') {
+        throw new Error(`${backupKind || 'restore'} restore is not supported by the trial agent yet`);
+      }
+
+      const result = await runDatabaseRestoreJob(config, job);
+      await api(config, `/api/agent/jobs/${job.id}/complete`, {
+        method: 'POST',
+        body: JSON.stringify({
+          log: `Restore completed for ${job.cpanel_user}`,
+          result
+        })
+      });
+      log(`Completed restore job ${job.id}`);
       return;
     }
 

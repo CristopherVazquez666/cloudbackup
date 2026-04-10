@@ -88,6 +88,10 @@ function queueBackupForAccount(db, account, actor) {
 }
 
 function queueActionJob(db, account, backup, type, actor) {
+  const backupKind = String(backup.kind || 'full').trim().toLowerCase();
+  const databaseName = backupKind === 'db' && String(backup.filename || '').endsWith('.sql.gz')
+    ? String(backup.filename).slice(0, -'.sql.gz'.length)
+    : null;
   const job = enqueueJob({
     accountId: account.id,
     type,
@@ -96,6 +100,8 @@ function queueActionJob(db, account, backup, type, actor) {
     assignedServerId: account.server_id,
     payload: {
       backup_id: backup.id,
+      backup_kind: backupKind,
+      ...(databaseName ? { database_name: databaseName } : {}),
       filename: backup.filename,
       remote_path: backup.remote_path
     }
