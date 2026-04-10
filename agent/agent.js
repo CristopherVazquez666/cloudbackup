@@ -197,7 +197,13 @@ async function runBackupJob(config, job) {
 async function listMysqlDatabases(cpanelUser) {
   const prefix = String(cpanelUser || '').replace(/[_%]/g, '\\$&');
   const query = `SHOW DATABASES LIKE '${prefix}\\_%';`;
-  const { stdout } = await runCommand('mysql', ['-NBe', query]);
+  const mysqlArgs = [];
+
+  if (fs.existsSync('/root/.my.cnf')) {
+    mysqlArgs.push('--defaults-file=/root/.my.cnf');
+  }
+
+  const { stdout } = await runCommand('mysql', [...mysqlArgs, '-NBe', query]);
 
   return String(stdout || '')
     .split('\n')
@@ -238,9 +244,15 @@ async function runDatabaseBackupJob(config, job) {
       : `${cpanelUser}-databases`;
     const filename = `${fileStub}.sql.gz`;
     const localArchive = path.join(tmpDir, filename);
+    const mysqlArgs = [];
+
+    if (fs.existsSync('/root/.my.cnf')) {
+      mysqlArgs.push('--defaults-file=/root/.my.cnf');
+    }
+
     const dumpScript = [
       'set -euo pipefail',
-      `mysqldump --single-transaction --quick --databases ${selectedDatabases.map(shellQuote).join(' ')} | gzip -c > ${shellQuote(localArchive)}`
+      `mysqldump ${mysqlArgs.join(' ')} --single-transaction --quick --databases ${selectedDatabases.map(shellQuote).join(' ')} | gzip -c > ${shellQuote(localArchive)}`
     ].join('; ');
 
     log(`Running mysqldump for ${cpanelUser}`, { databases: selectedDatabases });
