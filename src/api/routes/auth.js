@@ -2,6 +2,7 @@ const express = require('express');
 const { v4: uuidv4 } = require('uuid');
 const { getDb } = require('../../db');
 const {
+  adminMiddleware,
   isSafeCpanelUser,
   isSafeDomain,
   isSafeServerSlug,
@@ -77,6 +78,28 @@ function resolveAccountFromSso(db, server, cpanelUser, domain) {
     JOIN servers srv ON srv.id = a.server_id
     WHERE a.id = ?
   `).get(id);
+}
+
+function findAccountForAdminPreview(db, cpanelUser, serverSlug = '') {
+  if (serverSlug) {
+    return db.prepare(`
+      SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
+      FROM accounts a
+      JOIN servers srv ON srv.id = a.server_id
+      WHERE a.cpanel_user = ?
+        AND srv.slug = ?
+      LIMIT 1
+    `).get(cpanelUser, serverSlug);
+  }
+
+  return db.prepare(`
+    SELECT a.*, srv.slug AS server_slug, srv.name AS server_name
+    FROM accounts a
+    JOIN servers srv ON srv.id = a.server_id
+    WHERE a.cpanel_user = ?
+    ORDER BY a.created_at DESC
+    LIMIT 1
+  `).get(cpanelUser);
 }
 
 function isDevUserPreviewEnabled() {
@@ -256,6 +279,38 @@ router.get('/dev/user-preview', (req, res) => {
       server_slug: account.server_slug,
       preview_domain: account.domain,
       source: 'local-dev-preview'
+    }
+  });
+
+  return res.redirect('/user/');
+});
+
+router.get('/admin/preview-user/:cpanel_user', adminMiddleware, (req, res) => {
+  const db = getDb();
+  const cpanelUser = normalizeCpanelUser(req.params.cpanel_user);
+  const serverSlug = normalizeServerSlug(req.query.server_slug || '');
+
+  if (!isSafeCpanelUser(cpanelUser) || (serverSlug && !isSafeServerSlug(serverSlug))) {
+    return res.status(400).json({ error: 'Invalid preview target' });
+  }
+
+  const account = findAccountForAdminPreview(db, cpanelUser, serverSlug);
+
+  if (!account) {
+    return res.status(404).json({ error: 'Account not found' });
+  }
+
+  if (account.status !== 'active') {
+    return res.status(403).json({ error: 'Account is not active' });
+  }
+
+  issueSession(res, {
+    role: 'user',
+    accountId: account.id,
+    cpanelUser: account.cpanel_user,
+    metadata: {
+      server_slug: account.server_slug,
+      source: 'admin-preview'
     }
   });
 
