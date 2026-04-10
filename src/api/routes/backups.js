@@ -49,7 +49,8 @@ function findBackupById(db, backupId) {
 }
 
 function queueBackupForAccount(db, account, actor) {
-  const backupKind = String(actor.backup_kind || 'full').trim().toLowerCase() === 'db' ? 'db' : 'full';
+  const requestedKind = String(actor.backup_kind || 'full').trim().toLowerCase();
+  const backupKind = ['db', 'mail', 'full'].includes(requestedKind) ? requestedKind : 'full';
   const databaseName = backupKind === 'db'
     ? String(actor.database_name || '').trim() || null
     : null;
@@ -70,10 +71,16 @@ function queueBackupForAccount(db, account, actor) {
 
   createAlert({
     accountId: account.id,
-    title: backupKind === 'db' ? 'Database backup queued' : 'Backup queued',
+    title: backupKind === 'db'
+      ? 'Database backup queued'
+      : backupKind === 'mail'
+        ? 'Mail backup queued'
+        : 'Backup queued',
     message: backupKind === 'db'
       ? `Database backup request queued for ${account.cpanel_user}${databaseName ? ` (${databaseName})` : ''}.`
-      : `Backup request queued for ${account.cpanel_user}.`,
+      : backupKind === 'mail'
+        ? `Mail backup request queued for ${account.cpanel_user}.`
+        : `Backup request queued for ${account.cpanel_user}.`,
     level: 'info'
   });
 

@@ -1485,7 +1485,9 @@ function renderRestoreTable() {
 
   function formatBackupKind(kind) {
     const normalized = String(kind || 'full').trim().toLowerCase();
-    return normalized === 'db' ? 'database' : normalized;
+    if (normalized === 'db') return 'database';
+    if (normalized === 'mail') return 'email';
+    return normalized;
   }
 
   document.getElementById('restoreTable').innerHTML = filtered.length ? `
@@ -1506,7 +1508,12 @@ function renderDownloads() {
     <table><thead><tr><th>Created</th><th>Type</th><th>Account</th><th>Size</th><th>Status</th><th>Path</th><th></th></tr></thead>
     <tbody>${backups.map((backup) => `<tr>
       <td>${fmtDate(backup.created_at)}</td>
-      <td><span class="badge badge-info">${h(String(backup.kind || 'full').trim().toLowerCase() === 'db' ? 'database' : (backup.kind || 'full'))}</span></td>
+      <td><span class="badge badge-info">${h((() => {
+        const normalized = String(backup.kind || 'full').trim().toLowerCase();
+        if (normalized === 'db') return 'database';
+        if (normalized === 'mail') return 'email';
+        return normalized;
+      })())}</span></td>
       <td>${h(cpanel_user)}<br><span style="color:var(--text3);font-size:11px;">ID: ${h(backup.id.substring(0, 8))}</span></td>
       <td>${backup.filesize ? `${(backup.filesize / 1024 / 1024).toFixed(2)} MB` : '—'}</td>
       <td>${(() => {

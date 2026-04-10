@@ -98,6 +98,15 @@ async function runCommand(command, args, options = {}) {
   }
 }
 
+async function pathExists(targetPath) {
+  try {
+    await fsp.access(targetPath);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 async function ensureDir(dirPath) {
   await fsp.mkdir(dirPath, { recursive: true });
 }
@@ -211,6 +220,193 @@ async function listMysqlDatabases(cpanelUser) {
     .filter(Boolean);
 }
 
+async function runUapi(cpanelUser, module, func, args = []) {
+  const { stdout } = await runCommand('uapi', [
+    `--user=${cpanelUser}`,
+    module,
+    func,
+    ...args,
+    '--output=jsonpretty'
+  ]);
+
+  let payload;
+  try {
+    payload = JSON.parse(stdout);
+  } catch (error) {
+    throw new Error(`Could not parse UAPI response for ${module}.${func}`);
+  }
+
+  if (payload?.result?.status !== 1) {
+    const detail = payload?.result?.errors?.join('; ') || payload?.result?.messages?.join('; ') || `${module}.${func} failed`;
+    throw new Error(detail);
+  }
+
+  return payload.result.data || [];
+}
+
+async function detectMailStorageFormat(cpanelUser) {
+  const homeDir = path.join('/home', cpanelUser);
+  const mailRoot = path.join(homeDir, 'mail');
+  const hintFile = path.join(mailRoot, 'mailbox_format.cpanel');
+  const evidence = [];
+
+  if (await pathExists(hintFile)) {
+    const hint = String(await fsp.readFile(hintFile, 'utf8')).trim().toLowerCase();
+    if (hint) {
+      evidence.push(`mailbox_format.cpanel=${hint}`);
+      if (hint.includes('mdbox')) {
+        return { format: 'mdbox', evidence };
+      }
+      if (hint.includes('maildir')) {
+        return { format: 'maildir', evidence };
+      }
+    }
+  }
+
+  const sampleRoots = await runCommand('bash', ['-lc', `find ${shellQuote(mailRoot)} -maxdepth 4 -type d \\( -name storage -o -name cur -o -name new -o -name tmp \\) | sed -n '1,80p'`]);
+  const samplePaths = String(sampleRoots.stdout || '')
+    .split('\n')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (samplePaths.some((value) => /\/storage$/.test(value))) {
+    evidence.push('storage-dir');
+    return { format: 'mdbox', evidence };
+  }
+
+  if (samplePaths.some((value) => /\/(cur|new|tmp)$/.test(value))) {
+    evidence.push('maildir-folders');
+    return { format: 'maildir', evidence };
+  }
+
+  const specialFiles = await runCommand('bash', ['-lc', `find ${shellQuote(mailRoot)} -maxdepth 4 \\( -name mailboxes.db -o -name maildirfolder \\) | sed -n '1,80p'`]);
+  const specialPaths = String(specialFiles.stdout || '')
+    .split('\n')
+    .map((value) => value.trim())
+    .filter(Boolean);
+
+  if (specialPaths.some((value) => /mailboxes\.db$/.test(value))) {
+    evidence.push('mailboxes.db');
+    return { format: 'mdbox', evidence };
+  }
+
+  if (specialPaths.some((value) => /maildirfolder$/.test(value))) {
+    evidence.push('maildirfolder');
+    return { format: 'maildir', evidence };
+  }
+
+  return { format: 'unknown', evidence };
+}
+
+async function runMailBackupJob(config, job) {
+  const payload = job.payload || {};
+  const cpanelUser = payload.cpanel_user || job.cpanel_user;
+
+  if (!cpanelUser) {
+    throw new Error('Mail backup job is missing cpanel_user');
+  }
+
+  const homeDir = path.join('/home', cpanelUser);
+  const mailRoot = path.join(homeDir, 'mail');
+  const etcRoot = path.join(homeDir, 'etc');
+  const tmpDir = path.join(config.local_temp_dir, job.id);
+  const stagingDir = path.join(tmpDir, 'mail-backup');
+  const stageMailDir = path.join(stagingDir, 'mail');
+  const stageEtcDir = path.join(stagingDir, 'etc');
+
+  await cleanupDir(tmpDir);
+  await ensureDir(stageMailDir);
+  await ensureDir(stageEtcDir);
+
+  try {
+    const domains = await runUapi(cpanelUser, 'Email', 'list_mail_domains');
+    const mailboxes = await runUapi(cpanelUser, 'Email', 'list_pops_with_disk');
+    const detected = await detectMailStorageFormat(cpanelUser);
+    const domainNames = domains
+      .map((entry) => String(entry.domain || '').trim())
+      .filter(Boolean);
+
+    if (!domainNames.length) {
+      throw new Error(`No mail domains were found for ${cpanelUser}`);
+    }
+
+    log(`Preparing mail backup for ${cpanelUser}`, {
+      format: detected.format,
+      domains: domainNames,
+      accounts: mailboxes.map((entry) => entry.email).filter(Boolean)
+    });
+
+    await runCommand('rsync', [
+      '-a',
+      '--delete',
+      `${mailRoot}/`,
+      `${stageMailDir}/`
+    ]);
+
+    for (const domain of domainNames) {
+      const sourceConfigDir = path.join(etcRoot, domain);
+      if (!(await pathExists(sourceConfigDir))) {
+        continue;
+      }
+      const destinationConfigDir = path.join(stageEtcDir, domain);
+      await ensureDir(destinationConfigDir);
+      await runCommand('rsync', [
+        '-a',
+        '--delete',
+        '--exclude',
+        '*.rcube.db',
+        `${sourceConfigDir}/`,
+        `${destinationConfigDir}/`
+      ]);
+    }
+
+    const manifest = {
+      created_at: new Date().toISOString(),
+      cpanel_user: cpanelUser,
+      kind: 'mail',
+      storage_format: detected.format,
+      format_evidence: detected.evidence,
+      domains: domainNames,
+      mailboxes: mailboxes.map((entry) => ({
+        email: entry.email,
+        domain: entry.domain,
+        diskused_mb: entry.diskused,
+        diskquota_mb: entry.diskquota
+      }))
+    };
+
+    await fsp.writeFile(
+      path.join(stagingDir, 'manifest.json'),
+      JSON.stringify(manifest, null, 2),
+      'utf8'
+    );
+
+    const filename = `${cpanelUser}-mail-${detected.format}.tar.gz`;
+    const localArchive = path.join(tmpDir, filename);
+    await runCommand('tar', ['-czf', localArchive, '-C', stagingDir, '.']);
+
+    const stats = await fsp.stat(localArchive);
+    const checksum = await sha256File(localArchive);
+    const remoteDir = path.posix.join(config.remote_base_path, config.server_slug, cpanelUser);
+    const remotePath = path.posix.join(remoteDir, filename);
+
+    await ensureRemoteDir(config, remoteDir);
+    log(`Uploading mail backup to ${config.remote_host}:${remotePath}`);
+    await rsyncFile(config, localArchive, remotePath);
+
+    return {
+      filename,
+      filesize: stats.size,
+      kind: 'mail',
+      remote_path: remotePath,
+      checksum,
+      notes: `Mail backup (${detected.format}) for ${domainNames.join(', ')} created by bovedix-agent on ${new Date().toISOString()}`
+    };
+  } finally {
+    await cleanupDir(tmpDir);
+  }
+}
+
 async function runDatabaseBackupJob(config, job) {
   const payload = job.payload || {};
   const cpanelUser = payload.cpanel_user || job.cpanel_user;
@@ -289,7 +485,9 @@ async function processJob(config, job) {
       const backupKind = String(job.payload?.backup_kind || 'full').trim().toLowerCase();
       const backup = backupKind === 'db'
         ? await runDatabaseBackupJob(config, job)
-        : await runBackupJob(config, job);
+        : backupKind === 'mail'
+          ? await runMailBackupJob(config, job)
+          : await runBackupJob(config, job);
       await api(config, `/api/agent/jobs/${job.id}/complete`, {
         method: 'POST',
         body: JSON.stringify({
