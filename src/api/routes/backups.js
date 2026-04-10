@@ -49,6 +49,10 @@ function findBackupById(db, backupId) {
 }
 
 function queueBackupForAccount(db, account, actor) {
+  const backupKind = String(actor.backup_kind || 'full').trim().toLowerCase() === 'db' ? 'db' : 'full';
+  const databaseName = backupKind === 'db'
+    ? String(actor.database_name || '').trim() || null
+    : null;
   const job = enqueueJob({
     accountId: account.id,
     type: 'backup',
@@ -56,17 +60,20 @@ function queueBackupForAccount(db, account, actor) {
     requestedBy: actor.username || actor.cpanel_user || account.cpanel_user,
     assignedServerId: account.server_id,
     payload: {
-      backup_kind: 'full',
+      backup_kind: backupKind,
       cpanel_user: account.cpanel_user,
       domain: account.domain,
-      storage_path: account.storage_path
+      storage_path: account.storage_path,
+      ...(databaseName ? { database_name: databaseName } : {})
     }
   });
 
   createAlert({
     accountId: account.id,
-    title: 'Backup queued',
-    message: `Backup request queued for ${account.cpanel_user}.`,
+    title: backupKind === 'db' ? 'Database backup queued' : 'Backup queued',
+    message: backupKind === 'db'
+      ? `Database backup request queued for ${account.cpanel_user}${databaseName ? ` (${databaseName})` : ''}.`
+      : `Backup request queued for ${account.cpanel_user}.`,
     level: 'info'
   });
 
@@ -126,7 +133,11 @@ router.post('/request', authMiddleware, (req, res) => {
     return;
   }
 
-  const job = queueBackupForAccount(db, account, req.user);
+  const job = queueBackupForAccount(db, account, {
+    ...req.user,
+    backup_kind: req.body?.backup_kind,
+    database_name: req.body?.database_name
+  });
   return res.json({ success: true, jobId: job.id, status: job.status });
 });
 
@@ -138,7 +149,11 @@ router.post('/:cpanel_user', authMiddleware, (req, res) => {
     return;
   }
 
-  const job = queueBackupForAccount(db, account, req.user);
+  const job = queueBackupForAccount(db, account, {
+    ...req.user,
+    backup_kind: req.body?.backup_kind,
+    database_name: req.body?.database_name
+  });
   return res.json({ success: true, jobId: job.id, status: job.status });
 });
 

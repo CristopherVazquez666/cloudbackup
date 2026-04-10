@@ -194,13 +194,90 @@ async function runBackupJob(config, job) {
   }
 }
 
+async function listMysqlDatabases(cpanelUser) {
+  const prefix = String(cpanelUser || '').replace(/[_%]/g, '\\$&');
+  const query = `SHOW DATABASES LIKE '${prefix}\\_%';`;
+  const { stdout } = await runCommand('mysql', ['-NBe', query]);
+
+  return String(stdout || '')
+    .split('\n')
+    .map((value) => value.trim())
+    .filter(Boolean);
+}
+
+async function runDatabaseBackupJob(config, job) {
+  const payload = job.payload || {};
+  const cpanelUser = payload.cpanel_user || job.cpanel_user;
+  const requestedDatabase = String(payload.database_name || payload.database || '').trim();
+
+  if (!cpanelUser) {
+    throw new Error('Database backup job is missing cpanel_user');
+  }
+
+  const tmpDir = path.join(config.local_temp_dir, job.id);
+  await cleanupDir(tmpDir);
+  await ensureDir(tmpDir);
+
+  try {
+    const databases = await listMysqlDatabases(cpanelUser);
+
+    if (!databases.length) {
+      throw new Error(`No databases were found for ${cpanelUser}`);
+    }
+
+    const selectedDatabases = requestedDatabase
+      ? databases.filter((database) => database === requestedDatabase)
+      : databases;
+
+    if (!selectedDatabases.length) {
+      throw new Error(`Database ${requestedDatabase} was not found for ${cpanelUser}`);
+    }
+
+    const fileStub = selectedDatabases.length === 1
+      ? selectedDatabases[0]
+      : `${cpanelUser}-databases`;
+    const filename = `${fileStub}.sql.gz`;
+    const localArchive = path.join(tmpDir, filename);
+    const dumpScript = [
+      'set -euo pipefail',
+      `mysqldump --single-transaction --quick --databases ${selectedDatabases.map(shellQuote).join(' ')} | gzip -c > ${shellQuote(localArchive)}`
+    ].join('; ');
+
+    log(`Running mysqldump for ${cpanelUser}`, { databases: selectedDatabases });
+    await runCommand('bash', ['-lc', dumpScript]);
+
+    const stats = await fsp.stat(localArchive);
+    const checksum = await sha256File(localArchive);
+    const remoteDir = path.posix.join(config.remote_base_path, config.server_slug, cpanelUser);
+    const remotePath = path.posix.join(remoteDir, filename);
+
+    await ensureRemoteDir(config, remoteDir);
+    log(`Uploading database backup to ${config.remote_host}:${remotePath}`);
+    await rsyncFile(config, localArchive, remotePath);
+
+    return {
+      filename,
+      filesize: stats.size,
+      kind: 'db',
+      remote_path: remotePath,
+      checksum,
+      notes: `Database backup for ${selectedDatabases.join(', ')} created by bovedix-agent on ${new Date().toISOString()}`
+    };
+  } finally {
+    await cleanupDir(tmpDir);
+  }
+}
+
 async function processJob(config, job) {
   await api(config, `/api/agent/jobs/${job.id}/start`, { method: 'POST' });
   log(`Started job ${job.id} (${job.type}) for ${job.cpanel_user}`);
 
   try {
     if (job.type === 'backup') {
-      const backup = await runBackupJob(config, job);
+      const backupKind = String(job.payload?.backup_kind || 'full').trim().toLowerCase();
+      const backup = backupKind === 'db'
+        ? await runDatabaseBackupJob(config, job)
+        : await runBackupJob(config, job);
       await api(config, `/api/agent/jobs/${job.id}/complete`, {
         method: 'POST',
         body: JSON.stringify({
