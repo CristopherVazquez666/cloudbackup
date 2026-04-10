@@ -419,6 +419,74 @@ async function runMailBackupJob(config, job) {
   }
 }
 
+async function runMailRestoreJob(config, job) {
+  const payload = job.payload || {};
+  const cpanelUser = payload.cpanel_user || job.cpanel_user;
+  const remotePath = String(payload.remote_path || '').trim();
+
+  if (!cpanelUser) {
+    throw new Error('Mail restore job is missing cpanel_user');
+  }
+
+  if (!remotePath) {
+    throw new Error('Mail restore job is missing remote_path');
+  }
+
+  const homeDir = path.join('/home', cpanelUser);
+  const targetMailDir = path.join(homeDir, 'mail');
+  const targetEtcDir = path.join(homeDir, 'etc');
+  const tmpDir = path.join(config.local_temp_dir, job.id);
+  const extractDir = path.join(tmpDir, 'extract');
+
+  await cleanupDir(tmpDir);
+  await ensureDir(extractDir);
+
+  try {
+    const localArchive = path.join(tmpDir, path.basename(remotePath));
+    log(`Downloading mail backup from ${config.remote_host}:${remotePath}`);
+    await rsyncFromRemote(config, remotePath, localArchive);
+
+    await runCommand('tar', ['-xzf', localArchive, '-C', extractDir]);
+
+    const restoredMailDir = path.join(extractDir, 'mail');
+    const restoredEtcDir = path.join(extractDir, 'etc');
+
+    if (!(await pathExists(restoredMailDir))) {
+      throw new Error('Mail restore archive does not contain a mail directory');
+    }
+
+    if (!(await pathExists(targetMailDir))) {
+      await ensureDir(targetMailDir);
+    }
+
+    log(`Restoring mail tree for ${cpanelUser}`);
+    await runCommand('rsync', [
+      '-a',
+      '--delete',
+      `${restoredMailDir}/`,
+      `${targetMailDir}/`
+    ]);
+
+    if (await pathExists(restoredEtcDir)) {
+      log(`Restoring mail account config for ${cpanelUser}`);
+      await runCommand('rsync', [
+        '-a',
+        '--exclude',
+        '*.rcube.db',
+        `${restoredEtcDir}/`,
+        `${targetEtcDir}/`
+      ]);
+    }
+
+    return {
+      remote_path: remotePath,
+      restored_kind: 'mail'
+    };
+  } finally {
+    await cleanupDir(tmpDir);
+  }
+}
+
 async function runDatabaseBackupJob(config, job) {
   const payload = job.payload || {};
   const cpanelUser = payload.cpanel_user || job.cpanel_user;
@@ -594,20 +662,35 @@ async function processJob(config, job) {
     if (job.type === 'restore') {
       const backupKind = String(job.payload?.backup_kind || 'full').trim().toLowerCase();
 
-      if (backupKind !== 'db') {
-        throw new Error(`${backupKind || 'restore'} restore is not supported by the trial agent yet`);
+      if (backupKind === 'db') {
+        const result = await runDatabaseRestoreJob(config, job);
+        await api(config, `/api/agent/jobs/${job.id}/complete`, {
+          method: 'POST',
+          body: JSON.stringify({
+            log: `Restore completed for ${job.cpanel_user}`,
+            result
+          })
+        });
+        log(`Completed restore job ${job.id}`);
+        return;
       }
 
-      const result = await runDatabaseRestoreJob(config, job);
-      await api(config, `/api/agent/jobs/${job.id}/complete`, {
-        method: 'POST',
-        body: JSON.stringify({
-          log: `Restore completed for ${job.cpanel_user}`,
-          result
-        })
-      });
-      log(`Completed restore job ${job.id}`);
-      return;
+      if (backupKind === 'mail') {
+        const result = await runMailRestoreJob(config, job);
+        await api(config, `/api/agent/jobs/${job.id}/complete`, {
+          method: 'POST',
+          body: JSON.stringify({
+            log: `Restore completed for ${job.cpanel_user}`,
+            result
+          })
+        });
+        log(`Completed restore job ${job.id}`);
+        return;
+      }
+
+      if (backupKind !== 'db' && backupKind !== 'mail') {
+        throw new Error(`${backupKind || 'restore'} restore is not supported by the trial agent yet`);
+      }
     }
 
     throw new Error(`${job.type} is not supported by the trial agent yet`);
